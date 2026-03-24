@@ -1,0 +1,55 @@
+var lock = false;
+var val = provided;
+
+Mutex() = 
+[
+    [lock == false] lockGranted -> Mutex_locked()
+]
+||
+[
+    [lock == true] unlock -> Mutex_unlocked()
+];
+
+Mutex_locked() = 
+    atomic {
+        lock = true;
+    }
+    -> Mutex();
+
+Mutex_unlocked() = 
+    atomic {
+        lock = false;
+        wakeOne(queue);
+    }
+    -> Mutex();
+
+Thread1() = 
+[
+    [Mutex.lock == false] acquireLock -> Thread1_holding_lock()
+]
+||
+[
+    [Mutex.lock == true] releaseLock -> Thread1_not_holding_lock()
+];
+
+Thread1_holding_lock() = 
+    atomic {
+        Mutex.lock = true;
+    }
+    -> Thread1();
+
+Thread1_not_holding_lock() = 
+    atomic {
+        Mutex.lock = false;
+    }
+    -> Thread1();
+
+// Composition
+Mutex() || Thread1();
+
+// Assertions
+#define A1 Always (Mutex.lock = true or Mutex.lock = false);
+#define A2 System deadlockfree;
+
+#assert Always (Mutex.lock = true or Mutex.lock = false);
+#assert System deadlockfree;

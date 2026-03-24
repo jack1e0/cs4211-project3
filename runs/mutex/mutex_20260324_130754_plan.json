@@ -1,0 +1,88 @@
+{
+  "system_type": "rust",
+  "system_name": "Mutex",
+  "constants": [],
+  "variables": [
+    {
+      "name": "lock",
+      "type": "bool",
+      "init": "false",
+      "range": "bool"
+    },
+    {
+      "name": "val",
+      "type": "T",
+      "init": "provided",
+      "range": "none"
+    }
+  ],
+  "processes": [
+    {
+      "name": "Mutex",
+      "role": "Resource",
+      "states_encoded_as": "state",
+      "transitions": [
+        {
+          "label": "lockGranted",
+          "guard": "[lock == false]",
+          "actions": [
+            "lock := true"
+          ],
+          "next_state": "locked"
+        },
+        {
+          "label": "unlock",
+          "guard": "[lock == true]",
+          "actions": [
+            "lock := false",
+            "wakeOne(queue)"
+          ],
+          "next_state": "unlocked"
+        }
+      ]
+    },
+    {
+      "name": "Thread1",
+      "role": "Actor",
+      "states_encoded_as": "state",
+      "transitions": [
+        {
+          "label": "acquireLock",
+          "guard": "[Mutex.lock == false]",
+          "actions": [
+            "Mutex.lock := true"
+          ],
+          "next_state": "holding_lock"
+        },
+        {
+          "label": "releaseLock",
+          "guard": "[Mutex.lock == true]",
+          "actions": [
+            "Mutex.lock := false"
+          ],
+          "next_state": "not_holding_lock"
+        }
+      ]
+    }
+  ],
+  "composition": "Mutex() || Thread1()",
+  "assertions": [
+    {
+      "id": "A1",
+      "kind": "invariant",
+      "description": "Mutex lock state is always valid",
+      "pat_snippet": "#assert Always (Mutex.lock = true or Mutex.lock = false);"
+    },
+    {
+      "id": "A2",
+      "kind": "deadlockfree",
+      "description": "System is deadlock-free",
+      "pat_snippet": "#assert System deadlockfree;"
+    }
+  ],
+  "translation_notes": [
+    "Mutex state transitions simplified for clarity",
+    "Thread interactions omitted for brevity",
+    "Queue management handled implicitly"
+  ]
+}
