@@ -1,0 +1,380 @@
+{
+  "CONTEXT" : "doors_ctx3",
+  "EXTENDS" : [ "doors_ctx2" ],
+  "SETS" : [ "D" ],
+  "CONSTANTS" : [ "org", "dst" ],
+  "AXIOMS" : [ {
+    "label_name" : "axm1",
+    "predicate" : "org ∈ D → L",
+    "comments" : ""
+  }, {
+    "label_name" : "axm2",
+    "predicate" : "dst ∈ D → L",
+    "comments" : ""
+  }, {
+    "label_name" : "axm3",
+    "predicate" : "com = (org∼ ; dst)",
+    "comments" : ""
+  } ]
+}
+
+{
+  "MACHINE" : "doors_4",
+  "REFINES" : [ "doors_3" ],
+  "SEES" : [ "doors_ctx3" ],
+  "VARIABLES" : [ "sit", "dap", "BLR", "mCard", "mAckn", "mAccept", "GRN", "mPass", "mOff_grn", "mRefuse", "RED", "mOff_red" ],
+  "INVARIANTS" : [ {
+    "label_name" : "inv1",
+    "predicate" : "ran(dap) = mAccept ∪ mPass ∪ mOff_grn ",
+    "comments" : ""
+  }, {
+    "label_name" : "inv2",
+    "predicate" : "mAccept ∩ (mPass ∪ mOff_grn) = ∅",
+    "comments" : ""
+  }, {
+    "label_name" : "inv4",
+    "predicate" : "mPass ∩ mOff_grn = ∅",
+    "comments" : ""
+  }, {
+    "label_name" : "inv5",
+    "predicate" : "red = mRefuse ∪ mOff_red ",
+    "comments" : ""
+  }, {
+    "label_name" : "inv6",
+    "predicate" : "mRefuse ∩ mOff_red = ∅",
+    "comments" : ""
+  }, {
+    "label_name" : "inv8",
+    "predicate" : "GRN ⊆ mAccept",
+    "comments" : ""
+  }, {
+    "label_name" : "inv9",
+    "predicate" : "RED ⊆ mRefuse ",
+    "comments" : ""
+  } ],
+  "VARIANTS" : [ ],
+  "EVENTS" : [ {
+    "event_name" : "INITIALISATION",
+    "REFINES" : [ ],
+    "ANY" : [ ],
+    "WHERE" : [ ],
+    "WITH" : [ ],
+    "THEN" : [ {
+      "label_name" : "act1",
+      "assignment" : "sit ≔ P×{outside}",
+      "comments" : ""
+    }, {
+      "label_name" : "act2",
+      "assignment" : "dap ≔ ∅",
+      "comments" : ""
+    }, {
+      "label_name" : "act4",
+      "assignment" : "BLR ≔ ∅",
+      "comments" : ""
+    }, {
+      "label_name" : "act5",
+      "assignment" : "mCard ≔ ∅",
+      "comments" : ""
+    }, {
+      "label_name" : "act6",
+      "assignment" : "mAckn ≔ ∅",
+      "comments" : ""
+    }, {
+      "label_name" : "act7",
+      "assignment" : "mAccept ≔ ∅",
+      "comments" : ""
+    }, {
+      "label_name" : "act3",
+      "assignment" : "GRN ≔ ∅",
+      "comments" : ""
+    }, {
+      "label_name" : "act8",
+      "assignment" : "mPass ≔ ∅",
+      "comments" : ""
+    }, {
+      "label_name" : "act9",
+      "assignment" : "mOff_grn ≔ ∅",
+      "comments" : ""
+    }, {
+      "label_name" : "act10",
+      "assignment" : "mRefuse ≔ ∅",
+      "comments" : ""
+    }, {
+      "label_name" : "act11",
+      "assignment" : "RED ≔ ∅",
+      "comments" : ""
+    }, {
+      "label_name" : "act12",
+      "assignment" : "mOff_red ≔ ∅",
+      "comments" : ""
+    } ]
+  }, {
+    "event_name" : "pass",
+    "REFINES" : [ "pass" ],
+    "ANY" : [ "d" ],
+    "WHERE" : [ {
+      "label_name" : "grd11",
+      "predicate" : "d∈mPass",
+      "comments" : ""
+    } ],
+    "WITH" : [ ],
+    "THEN" : [ {
+      "label_name" : "act11",
+      "assignment" : "dap ≔ dap ⩥ {d}",
+      "comments" : ""
+    }, {
+      "label_name" : "act1",
+      "assignment" : "sit(dap∼(d)) ≔ dst(d) ",
+      "comments" : ""
+    }, {
+      "label_name" : "act2",
+      "assignment" : "mAckn ≔ mAckn ∪ {d}",
+      "comments" : ""
+    }, {
+      "label_name" : "act3",
+      "assignment" : "mPass ≔ mPass∖{d}",
+      "comments" : ""
+    } ]
+  }, {
+    "event_name" : "accept",
+    "REFINES" : [ "accept" ],
+    "ANY" : [ "p", "d" ],
+    "WHERE" : [ {
+      "label_name" : "grd1",
+      "predicate" : "d↦p ∈ mCard",
+      "comments" : ""
+    }, {
+      "label_name" : "grd11",
+      "predicate" : "sit(p) = org(d)",
+      "comments" : ""
+    }, {
+      "label_name" : "grd12",
+      "predicate" : "p↦dst(d) ∈ aut",
+      "comments" : ""
+    }, {
+      "label_name" : "grd13",
+      "predicate" : "p ∉ dom(dap)",
+      "comments" : ""
+    } ],
+    "WITH" : [ ],
+    "THEN" : [ {
+      "label_name" : "act11",
+      "assignment" : "dap(p) ≔ d",
+      "comments" : ""
+    }, {
+      "label_name" : "act1",
+      "assignment" : "mCard ≔ mCard ∖{d↦p}",
+      "comments" : ""
+    }, {
+      "label_name" : "act2",
+      "assignment" : "mAccept ≔ mAccept ∪ {d}",
+      "comments" : ""
+    } ]
+  }, {
+    "event_name" : "refuse",
+    "REFINES" : [ "refuse" ],
+    "ANY" : [ "p", "d" ],
+    "WHERE" : [ {
+      "label_name" : "grd12",
+      "predicate" : "d↦p ∈ mCard",
+      "comments" : ""
+    }, {
+      "label_name" : "grd11",
+      "predicate" : "¬(sit(p) = org(d) ∧ p↦dst(d) ∈ aut ∧ p∉dom(dap))",
+      "comments" : ""
+    } ],
+    "WITH" : [ ],
+    "THEN" : [ {
+      "label_name" : "act1",
+      "assignment" : "mCard ≔ mCard∖{d↦p}",
+      "comments" : ""
+    }, {
+      "label_name" : "act2",
+      "assignment" : "mRefuse ≔ mRefuse ∪ {d}",
+      "comments" : ""
+    } ]
+  }, {
+    "event_name" : "off_grn",
+    "REFINES" : [ "off_grn" ],
+    "ANY" : [ "d" ],
+    "WHERE" : [ {
+      "label_name" : "grd11",
+      "predicate" : "d∈ mOff_grn",
+      "comments" : ""
+    } ],
+    "WITH" : [ ],
+    "THEN" : [ {
+      "label_name" : "act11",
+      "assignment" : "dap ≔ dap ⩥ {d}",
+      "comments" : ""
+    }, {
+      "label_name" : "act1",
+      "assignment" : "mAckn ≔ mAckn ∪{d}",
+      "comments" : ""
+    }, {
+      "label_name" : "act2",
+      "assignment" : "mOff_grn ≔ mOff_grn∖{d}",
+      "comments" : ""
+    } ]
+  }, {
+    "event_name" : "off_red",
+    "REFINES" : [ "off_red" ],
+    "ANY" : [ "d" ],
+    "WHERE" : [ {
+      "label_name" : "grd11",
+      "predicate" : "d∈mOff_red",
+      "comments" : ""
+    } ],
+    "WITH" : [ ],
+    "THEN" : [ {
+      "label_name" : "act1",
+      "assignment" : "mAckn ≔ mAckn ∪ {d}",
+      "comments" : ""
+    }, {
+      "label_name" : "act2",
+      "assignment" : "mOff_red ≔ mOff_red∖{d}",
+      "comments" : ""
+    } ]
+  }, {
+    "event_name" : "CARD",
+    "REFINES" : [ "CARD" ],
+    "ANY" : [ "p", "d" ],
+    "WHERE" : [ {
+      "label_name" : "grd11",
+      "predicate" : "p ∈ P",
+      "comments" : ""
+    }, {
+      "label_name" : "grd12",
+      "predicate" : "d ∈ D∖BLR",
+      "comments" : ""
+    } ],
+    "WITH" : [ ],
+    "THEN" : [ {
+      "label_name" : "act11",
+      "assignment" : "BLR ≔ BLR ∪ {d}",
+      "comments" : ""
+    }, {
+      "label_name" : "act12",
+      "assignment" : "mCard ≔ mCard ∪ {d↦p}",
+      "comments" : ""
+    } ]
+  }, {
+    "event_name" : "ACKN",
+    "REFINES" : [ "ACKN" ],
+    "ANY" : [ "d" ],
+    "WHERE" : [ {
+      "label_name" : "grd11",
+      "predicate" : "d ∈ mAckn",
+      "comments" : ""
+    } ],
+    "WITH" : [ ],
+    "THEN" : [ {
+      "label_name" : "act11",
+      "assignment" : "BLR ≔ BLR∖{d}",
+      "comments" : ""
+    }, {
+      "label_name" : "act12",
+      "assignment" : "mAckn ≔ mAckn∖{d}",
+      "comments" : ""
+    } ]
+  }, {
+    "event_name" : "ACCEPT",
+    "REFINES" : [ ],
+    "ANY" : [ "d" ],
+    "WHERE" : [ {
+      "label_name" : "grd11",
+      "predicate" : "d∈mAccept",
+      "comments" : ""
+    } ],
+    "WITH" : [ ],
+    "THEN" : [ {
+      "label_name" : "act11",
+      "assignment" : "GRN ≔ GRN ∪ {d}",
+      "comments" : ""
+    } ]
+  }, {
+    "event_name" : "REFUSE",
+    "REFINES" : [ ],
+    "ANY" : [ "d" ],
+    "WHERE" : [ {
+      "label_name" : "grd11",
+      "predicate" : "d∈mRefuse",
+      "comments" : ""
+    } ],
+    "WITH" : [ ],
+    "THEN" : [ {
+      "label_name" : "act11",
+      "assignment" : "RED ≔ RED ∪ {d}",
+      "comments" : ""
+    } ]
+  }, {
+    "event_name" : "PASS",
+    "REFINES" : [ ],
+    "ANY" : [ "d" ],
+    "WHERE" : [ {
+      "label_name" : "grd11",
+      "predicate" : "d∈GRN",
+      "comments" : ""
+    } ],
+    "WITH" : [ ],
+    "THEN" : [ {
+      "label_name" : "act11",
+      "assignment" : "GRN ≔ GRN∖{d}",
+      "comments" : ""
+    }, {
+      "label_name" : "act12",
+      "assignment" : "mPass ≔ mPass ∪ {d}",
+      "comments" : ""
+    }, {
+      "label_name" : "act13",
+      "assignment" : "mAccept ≔ mAccept ∖{d}",
+      "comments" : ""
+    } ]
+  }, {
+    "event_name" : "OFF_GRN",
+    "REFINES" : [ ],
+    "ANY" : [ "d" ],
+    "WHERE" : [ {
+      "label_name" : "grd11",
+      "predicate" : "d∈GRN",
+      "comments" : ""
+    } ],
+    "WITH" : [ ],
+    "THEN" : [ {
+      "label_name" : "act11",
+      "assignment" : "GRN ≔ GRN ∖ {d}",
+      "comments" : ""
+    }, {
+      "label_name" : "act12",
+      "assignment" : "mOff_grn ≔ mOff_grn ∪ {d}",
+      "comments" : ""
+    }, {
+      "label_name" : "act13",
+      "assignment" : "mAccept ≔ mAccept∖{d}",
+      "comments" : ""
+    } ]
+  }, {
+    "event_name" : "OFF_RED",
+    "REFINES" : [ ],
+    "ANY" : [ "d" ],
+    "WHERE" : [ {
+      "label_name" : "grd11",
+      "predicate" : "d∈RED",
+      "comments" : ""
+    } ],
+    "WITH" : [ ],
+    "THEN" : [ {
+      "label_name" : "act11",
+      "assignment" : "RED ≔ RED ∖ {d}",
+      "comments" : ""
+    }, {
+      "label_name" : "act12",
+      "assignment" : "mOff_red ≔ mOff_red ∪ {d}",
+      "comments" : ""
+    }, {
+      "label_name" : "act13",
+      "assignment" : "mRefuse ≔ mRefuse ∖ {d}",
+      "comments" : ""
+    } ]
+  } ]
+}

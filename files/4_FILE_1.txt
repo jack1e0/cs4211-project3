@@ -1,0 +1,153 @@
+{
+  "CONTEXT" : "file_ctx1",
+  "EXTENDS" : [ "file_ctx" ],
+  "SETS" : [ ],
+  "CONSTANTS" : [ "parity" ],
+  "AXIOMS" : [ {
+    "label_name" : "axm1",
+    "predicate" : "parity ∈ ℕ → ℤ ",
+    "comments" : ""
+  }, {
+    "label_name" : "axm2",
+    "predicate" : "parity(0) = 0",
+    "comments" : ""
+  }, {
+    "label_name" : "axm3",
+    "predicate" : "∀x·x∈ℕ ⇒ parity(x+1)=1−parity(x)",
+    "comments" : ""
+  }, {
+    "label_name" : "axm4",
+    "predicate" : "∀x,y· y∈ℕ ∧ \n      x∈y‥y+1 ∧ \n      parity(x)=parity(y) \n     ⇒ \n      x=y",
+    "comments" : ""
+  } ]
+}
+
+{
+  "MACHINE" : "file_3",
+  "REFINES" : [ "file_2" ],
+  "SEES" : [ "file_ctx1" ],
+  "VARIABLES" : [ "h", "r", "s", "d", "p", "q", "b" ],
+  "INVARIANTS" : [ {
+    "label_name" : "inv1",
+    "predicate" : "p = parity(s)",
+    "comments" : ""
+  }, {
+    "label_name" : "inv2",
+    "predicate" : "q = parity(r)",
+    "comments" : ""
+  } ],
+  "VARIANTS" : [ ],
+  "EVENTS" : [ {
+    "event_name" : "INITIALISATION",
+    "REFINES" : [ ],
+    "ANY" : [ ],
+    "WHERE" : [ ],
+    "WITH" : [ ],
+    "THEN" : [ {
+      "label_name" : "act1",
+      "assignment" : "h ≔ ∅",
+      "comments" : ""
+    }, {
+      "label_name" : "act2",
+      "assignment" : "r ≔ 1",
+      "comments" : ""
+    }, {
+      "label_name" : "act3",
+      "assignment" : "s ≔ 1",
+      "comments" : ""
+    }, {
+      "label_name" : "act4",
+      "assignment" : "d :∈ D",
+      "comments" : ""
+    }, {
+      "label_name" : "act5",
+      "assignment" : "p ≔ 1",
+      "comments" : ""
+    }, {
+      "label_name" : "act6",
+      "assignment" : "q ≔ 1",
+      "comments" : ""
+    }, {
+      "label_name" : "act7",
+      "assignment" : "b≔ FALSE",
+      "comments" : ""
+    } ]
+  }, {
+    "event_name" : "final",
+    "REFINES" : [ "final" ],
+    "ANY" : [ ],
+    "WHERE" : [ {
+      "label_name" : "grd1",
+      "predicate" : "r = n+1",
+      "comments" : ""
+    }, {
+      "label_name" : "grd3",
+      "predicate" : "b = FALSE",
+      "comments" : ""
+    } ],
+    "WITH" : [ ],
+    "THEN" : [ {
+      "label_name" : "act11",
+      "assignment" : "b ≔ TRUE",
+      "comments" : ""
+    } ]
+  }, {
+    "event_name" : "receive",
+    "REFINES" : [ "receive" ],
+    "ANY" : [ ],
+    "WHERE" : [ {
+      "label_name" : "grd11",
+      "predicate" : "p≠q",
+      "comments" : ""
+    } ],
+    "WITH" : [ ],
+    "THEN" : [ {
+      "label_name" : "act11",
+      "assignment" : "h(r) ≔ d",
+      "comments" : ""
+    }, {
+      "label_name" : "act12",
+      "assignment" : "r ≔ r+1",
+      "comments" : ""
+    }, {
+      "label_name" : "act1",
+      "assignment" : "q ≔ 1−q",
+      "comments" : ""
+    } ]
+  }, {
+    "event_name" : "send",
+    "REFINES" : [ "send" ],
+    "ANY" : [ ],
+    "WHERE" : [ {
+      "label_name" : "grd11",
+      "predicate" : "p = q",
+      "comments" : ""
+    }, {
+      "label_name" : "grd12",
+      "predicate" : "s ≠ n+1",
+      "comments" : ""
+    }, {
+      "label_name" : "thm1",
+      "predicate" : "p=parity(s)",
+      "comments" : ""
+    }, {
+      "label_name" : "thm2",
+      "predicate" : "q=parity(r)",
+      "comments" : ""
+    } ],
+    "WITH" : [ ],
+    "THEN" : [ {
+      "label_name" : "act11",
+      "assignment" : "d ≔ f(s)",
+      "comments" : ""
+    }, {
+      "label_name" : "act12",
+      "assignment" : "s ≔ s+1",
+      "comments" : ""
+    }, {
+      "label_name" : "act1",
+      "assignment" : "p ≔ 1−p",
+      "comments" : ""
+    } ]
+  } ]
+}

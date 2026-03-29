@@ -1,0 +1,25 @@
+#define CHANNELSIZE 1;
+
+channel init CHANNELSIZE; // channel for initialization
+channel recv CHANNELSIZE; // channel for receiving data
+channel send CHANNELSIZE; // channel for sending data
+
+// Process definitions
+Init = (init!() -> SetInitialValues);
+
+SetInitialValues = (h := {} -> r := 1 -> s := 1 -> d := D!x -> p := 1 -> q := 1 -> b := FALSE -> Main);
+
+Receive = (recv?d -> h(r) := d -> r := r + 1 -> q := 1 - q -> Main);
+
+Send = (send!f(s) -> d := f(s) -> s := s + 1 -> p := 1 - p -> Main);
+
+Final = (b := TRUE -> Skip);
+
+Main = (Init [] Receive [] Send [] Final);
+
+#system Main;
+#alphabet init, recv, send;
+#endalphabet; 
+
+#assert Main deadlockfree;
+#assert Main |= []<> b = TRUE;

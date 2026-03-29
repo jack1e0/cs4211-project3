@@ -1,0 +1,676 @@
+{
+  "CONTEXT" : "cd",
+  "EXTENDS" : [ ],
+  "SETS" : [ ],
+  "CONSTANTS" : [ "d" ],
+  "AXIOMS" : [ {
+    "label_name" : "axm1",
+    "predicate" : "d>0",
+    "comments" : ""
+  } ]
+}
+
+{
+  "CONTEXT" : "COLOR",
+  "EXTENDS" : [ ],
+  "SETS" : [ "Color" ],
+  "CONSTANTS" : [ "green", "red" ],
+  "AXIOMS" : [ {
+    "label_name" : "axm1",
+    "predicate" : "partition(Color, {green}, {red})",
+    "comments" : ""
+  } ]
+}
+
+{
+  "CONTEXT" : "SENSOR",
+  "EXTENDS" : [ ],
+  "SETS" : [ "Sensor" ],
+  "CONSTANTS" : [ "on", "off" ],
+  "AXIOMS" : [ {
+    "label_name" : "axm1",
+    "predicate" : "partition(Sensor, {on}, {off})",
+    "comments" : ""
+  } ]
+}
+
+{
+  "MACHINE" : "m3",
+  "REFINES" : [ "m2" ],
+  "SEES" : [ "cd", "COLOR", "SENSOR" ],
+  "VARIABLES" : [ "a", "b", "c", "ml_tl", "il_tl", "il_pass", "ml_pass", "A", "B", "C", "ML_OUT_SR", "ML_IN_SR", "IL_OUT_SR", "IL_IN_SR", "ml_out_10", "il_out_10", "ml_in_10", "il_in_10" ],
+  "INVARIANTS" : [ {
+    "label_name" : "inv1",
+    "predicate" : "IL_IN_SR = on ⇒ A>0",
+    "comments" : "car on sensor means there is a car"
+  }, {
+    "label_name" : "inv2",
+    "predicate" : "IL_OUT_SR = on ⇒ B>0",
+    "comments" : "car on sensor means there is a ca"
+  }, {
+    "label_name" : "inv3",
+    "predicate" : "ML_IN_SR = on ⇒ C>0",
+    "comments" : "car on sensor means there is a ca"
+  }, {
+    "label_name" : "inv4",
+    "predicate" : "ml_out_10 = TRUE ⇒ ml_tl=green",
+    "comments" : "A car passed, the traffic light must have been green"
+  }, {
+    "label_name" : "inv5",
+    "predicate" : "il_out_10 = TRUE ⇒ il_tl = green",
+    "comments" : "A car passed, the traffic light must have been green"
+  }, {
+    "label_name" : "inv6",
+    "predicate" : "IL_IN_SR = on ⇒ il_in_10 = FALSE",
+    "comments" : ""
+  }, {
+    "label_name" : "inv7",
+    "predicate" : "IL_OUT_SR = on ⇒ il_out_10 = FALSE",
+    "comments" : ""
+  }, {
+    "label_name" : "inv8",
+    "predicate" : "ML_IN_SR = on ⇒ ml_in_10 = FALSE",
+    "comments" : ""
+  }, {
+    "label_name" : "inv9",
+    "predicate" : "ML_OUT_SR = on ⇒ ml_out_10 = FALSE",
+    "comments" : ""
+  }, {
+    "label_name" : "inv10",
+    "predicate" : "il_in_10 = TRUE ∧ ml_out_10 = TRUE ⇒ A = a",
+    "comments" : "Connection between physical and logical numbers"
+  }, {
+    "label_name" : "inv11",
+    "predicate" : "il_in_10 = FALSE ∧ ml_out_10 = TRUE ⇒ A = a+1",
+    "comments" : ""
+  }, {
+    "label_name" : "inv12",
+    "predicate" : "il_in_10 = TRUE ∧ ml_out_10 = FALSE ⇒ A = a−1",
+    "comments" : ""
+  }, {
+    "label_name" : "inv13",
+    "predicate" : "il_in_10 = FALSE ∧ ml_out_10 = FALSE ⇒ A = a",
+    "comments" : ""
+  }, {
+    "label_name" : "inv14",
+    "predicate" : "il_in_10 = TRUE ∧ il_out_10 = TRUE ⇒ B=b",
+    "comments" : ""
+  }, {
+    "label_name" : "inv15",
+    "predicate" : "il_in_10 = TRUE ∧ il_out_10 = FALSE ⇒ B = b+1",
+    "comments" : ""
+  }, {
+    "label_name" : "inv16",
+    "predicate" : "il_in_10 = FALSE ∧ il_out_10 = TRUE ⇒ B = b−1",
+    "comments" : ""
+  }, {
+    "label_name" : "inv17",
+    "predicate" : "il_in_10 = FALSE ∧ il_out_10 = FALSE ⇒ B=b",
+    "comments" : ""
+  }, {
+    "label_name" : "inv18",
+    "predicate" : "il_out_10 = TRUE ∧ ml_in_10 = TRUE ⇒ C=c",
+    "comments" : ""
+  }, {
+    "label_name" : "inv19",
+    "predicate" : "il_out_10 = TRUE ∧ ml_in_10 = FALSE ⇒ C=c+1",
+    "comments" : ""
+  }, {
+    "label_name" : "inv20",
+    "predicate" : "il_out_10 = FALSE ∧ ml_in_10 = TRUE ⇒ C=c−1",
+    "comments" : ""
+  }, {
+    "label_name" : "inv21",
+    "predicate" : "il_out_10 =FALSE ∧ ml_in_10 = FALSE ⇒ C=c",
+    "comments" : ""
+  }, {
+    "label_name" : "inv22",
+    "predicate" : "A=0 ∨ C=0",
+    "comments" : "Law of physical variables"
+  }, {
+    "label_name" : "inv23",
+    "predicate" : "A+B+C ≤ d",
+    "comments" : "Law of physical variables"
+  }, {
+    "label_name" : "inv24",
+    "predicate" : "A∈ℕ ",
+    "comments" : ""
+  }, {
+    "label_name" : "inv25",
+    "predicate" : "B∈ℕ",
+    "comments" : ""
+  }, {
+    "label_name" : "inv26",
+    "predicate" : "C∈ℕ",
+    "comments" : ""
+  } ],
+  "VARIANTS" : [ ],
+  "EVENTS" : [ {
+    "event_name" : "INITIALISATION",
+    "REFINES" : [ ],
+    "ANY" : [ ],
+    "WHERE" : [ ],
+    "WITH" : [ ],
+    "THEN" : [ {
+      "label_name" : "act2",
+      "assignment" : "a ≔ 0",
+      "comments" : ""
+    }, {
+      "label_name" : "act3",
+      "assignment" : "b ≔ 0",
+      "comments" : ""
+    }, {
+      "label_name" : "act4",
+      "assignment" : "c ≔ 0",
+      "comments" : ""
+    }, {
+      "label_name" : "act1",
+      "assignment" : "ml_tl≔red",
+      "comments" : ""
+    }, {
+      "label_name" : "act5",
+      "assignment" : "il_tl≔red",
+      "comments" : ""
+    }, {
+      "label_name" : "act6",
+      "assignment" : "ml_pass≔1",
+      "comments" : ""
+    }, {
+      "label_name" : "act7",
+      "assignment" : "il_pass≔1",
+      "comments" : ""
+    }, {
+      "label_name" : "act15",
+      "assignment" : "ml_out_10 ≔ FALSE",
+      "comments" : ""
+    }, {
+      "label_name" : "qct16",
+      "assignment" : "il_out_10 ≔ FALSE",
+      "comments" : ""
+    }, {
+      "label_name" : "act17",
+      "assignment" : "ml_in_10 ≔ FALSE",
+      "comments" : ""
+    }, {
+      "label_name" : "act18",
+      "assignment" : "il_in_10 ≔ FALSE",
+      "comments" : ""
+    }, {
+      "label_name" : "act8",
+      "assignment" : "A ≔ 0",
+      "comments" : ""
+    }, {
+      "label_name" : "act9",
+      "assignment" : "B ≔ 0",
+      "comments" : ""
+    }, {
+      "label_name" : "act10",
+      "assignment" : "C ≔ 0",
+      "comments" : ""
+    }, {
+      "label_name" : "act11",
+      "assignment" : "ML_IN_SR ≔ off",
+      "comments" : ""
+    }, {
+      "label_name" : "act12",
+      "assignment" : "ML_OUT_SR ≔ off",
+      "comments" : ""
+    }, {
+      "label_name" : "act13",
+      "assignment" : "IL_OUT_SR ≔ off",
+      "comments" : ""
+    }, {
+      "label_name" : "act14",
+      "assignment" : "IL_IN_SR ≔ off",
+      "comments" : ""
+    } ]
+  }, {
+    "event_name" : "ML_out1",
+    "REFINES" : [ "ML_out1" ],
+    "ANY" : [ ],
+    "WHERE" : [ {
+      "label_name" : "grd1",
+      "predicate" : "ml_out_10= TRUE",
+      "comments" : ""
+    }, {
+      "label_name" : "grd2",
+      "predicate" : "a+b+1<d",
+      "comments" : ""
+    } ],
+    "WITH" : [ ],
+    "THEN" : [ {
+      "label_name" : "act1",
+      "assignment" : "a≔a+1",
+      "comments" : ""
+    }, {
+      "label_name" : "act2",
+      "assignment" : "ml_pass≔1",
+      "comments" : ""
+    }, {
+      "label_name" : "act3",
+      "assignment" : "ml_out_10 ≔ FALSE",
+      "comments" : ""
+    } ]
+  }, {
+    "event_name" : "ML_out2",
+    "REFINES" : [ "ML_out2" ],
+    "ANY" : [ ],
+    "WHERE" : [ {
+      "label_name" : "grd1",
+      "predicate" : "ml_out_10 = TRUE",
+      "comments" : ""
+    }, {
+      "label_name" : "grd2",
+      "predicate" : "a+b+1=d",
+      "comments" : ""
+    } ],
+    "WITH" : [ ],
+    "THEN" : [ {
+      "label_name" : "act1",
+      "assignment" : "a≔a+1",
+      "comments" : ""
+    }, {
+      "label_name" : "act2",
+      "assignment" : "ml_tl≔red",
+      "comments" : ""
+    }, {
+      "label_name" : "act3",
+      "assignment" : "ml_pass≔1",
+      "comments" : ""
+    }, {
+      "label_name" : "act4",
+      "assignment" : "ml_out_10 ≔ FALSE",
+      "comments" : ""
+    } ]
+  }, {
+    "event_name" : "IL_out1",
+    "REFINES" : [ "IL_out1" ],
+    "ANY" : [ ],
+    "WHERE" : [ {
+      "label_name" : "grd1",
+      "predicate" : "il_out_10 = TRUE",
+      "comments" : ""
+    }, {
+      "label_name" : "grd2",
+      "predicate" : "b>1",
+      "comments" : ""
+    } ],
+    "WITH" : [ ],
+    "THEN" : [ {
+      "label_name" : "act1",
+      "assignment" : "b≔b−1",
+      "comments" : ""
+    }, {
+      "label_name" : "act2",
+      "assignment" : "c≔c+1",
+      "comments" : ""
+    }, {
+      "label_name" : "act3",
+      "assignment" : "il_pass≔1",
+      "comments" : ""
+    }, {
+      "label_name" : "act4",
+      "assignment" : "il_out_10 ≔ FALSE",
+      "comments" : ""
+    } ]
+  }, {
+    "event_name" : "IL_out2",
+    "REFINES" : [ "IL_out2" ],
+    "ANY" : [ ],
+    "WHERE" : [ {
+      "label_name" : "grd1",
+      "predicate" : "il_out_10 = TRUE",
+      "comments" : ""
+    }, {
+      "label_name" : "grd2",
+      "predicate" : "b=1",
+      "comments" : ""
+    } ],
+    "WITH" : [ ],
+    "THEN" : [ {
+      "label_name" : "act1",
+      "assignment" : "b≔b−1",
+      "comments" : ""
+    }, {
+      "label_name" : "act2",
+      "assignment" : "il_tl≔red",
+      "comments" : ""
+    }, {
+      "label_name" : "act3",
+      "assignment" : "c≔c+1",
+      "comments" : ""
+    }, {
+      "label_name" : "act4",
+      "assignment" : "il_pass≔1",
+      "comments" : ""
+    }, {
+      "label_name" : "act5",
+      "assignment" : "il_out_10 ≔ FALSE",
+      "comments" : ""
+    } ]
+  }, {
+    "event_name" : "ML_tl_green",
+    "REFINES" : [ "ML_tl_green" ],
+    "ANY" : [ ],
+    "WHERE" : [ {
+      "label_name" : "grd1",
+      "predicate" : "ml_tl=red",
+      "comments" : ""
+    }, {
+      "label_name" : "grd2",
+      "predicate" : "a+b<d",
+      "comments" : ""
+    }, {
+      "label_name" : "grd3",
+      "predicate" : "c=0",
+      "comments" : ""
+    }, {
+      "label_name" : "grd4",
+      "predicate" : "il_pass=1",
+      "comments" : ""
+    }, {
+      "label_name" : "grd5",
+      "predicate" : "il_out_10 = FALSE ",
+      "comments" : ""
+    } ],
+    "WITH" : [ ],
+    "THEN" : [ {
+      "label_name" : "act1",
+      "assignment" : "ml_tl≔green",
+      "comments" : ""
+    }, {
+      "label_name" : "act2",
+      "assignment" : "il_tl≔red",
+      "comments" : ""
+    }, {
+      "label_name" : "act3",
+      "assignment" : "ml_pass≔0",
+      "comments" : ""
+    } ]
+  }, {
+    "event_name" : "IL_tl_green",
+    "REFINES" : [ "IL_tl_green" ],
+    "ANY" : [ ],
+    "WHERE" : [ {
+      "label_name" : "grd1",
+      "predicate" : "il_tl=red",
+      "comments" : ""
+    }, {
+      "label_name" : "grd2",
+      "predicate" : "0<b",
+      "comments" : ""
+    }, {
+      "label_name" : "grd3",
+      "predicate" : "a=0",
+      "comments" : ""
+    }, {
+      "label_name" : "grd4",
+      "predicate" : "ml_pass=1",
+      "comments" : ""
+    }, {
+      "label_name" : "grd5",
+      "predicate" : "ml_out_10 = FALSE",
+      "comments" : ""
+    } ],
+    "WITH" : [ ],
+    "THEN" : [ {
+      "label_name" : "act1",
+      "assignment" : "il_tl≔green",
+      "comments" : ""
+    }, {
+      "label_name" : "act2",
+      "assignment" : "ml_tl≔red",
+      "comments" : ""
+    }, {
+      "label_name" : "act3",
+      "assignment" : "il_pass≔0",
+      "comments" : ""
+    } ]
+  }, {
+    "event_name" : "ML_in",
+    "REFINES" : [ "ML_in" ],
+    "ANY" : [ ],
+    "WHERE" : [ {
+      "label_name" : "grd1",
+      "predicate" : "ml_in_10 = TRUE",
+      "comments" : ""
+    }, {
+      "label_name" : "grd2",
+      "predicate" : "c>0",
+      "comments" : ""
+    } ],
+    "WITH" : [ ],
+    "THEN" : [ {
+      "label_name" : "act1",
+      "assignment" : "c ≔ c−1",
+      "comments" : ""
+    }, {
+      "label_name" : "act2",
+      "assignment" : "ml_in_10 ≔ FALSE",
+      "comments" : ""
+    } ]
+  }, {
+    "event_name" : "IL_in",
+    "REFINES" : [ "IL_in" ],
+    "ANY" : [ ],
+    "WHERE" : [ {
+      "label_name" : "grd1",
+      "predicate" : "il_in_10 = TRUE",
+      "comments" : ""
+    }, {
+      "label_name" : "grd2",
+      "predicate" : "0 < a",
+      "comments" : ""
+    } ],
+    "WITH" : [ ],
+    "THEN" : [ {
+      "label_name" : "act1",
+      "assignment" : "a ≔ a−1",
+      "comments" : ""
+    }, {
+      "label_name" : "act2",
+      "assignment" : "b ≔ b+1",
+      "comments" : ""
+    }, {
+      "label_name" : "act3",
+      "assignment" : "il_in_10 ≔ FALSE",
+      "comments" : ""
+    } ]
+  }, {
+    "event_name" : "ML_OUT_ARR",
+    "REFINES" : [ ],
+    "ANY" : [ ],
+    "WHERE" : [ {
+      "label_name" : "grd1",
+      "predicate" : "ML_OUT_SR = off",
+      "comments" : ""
+    }, {
+      "label_name" : "grd2",
+      "predicate" : "ml_out_10 = FALSE",
+      "comments" : ""
+    } ],
+    "WITH" : [ ],
+    "THEN" : [ {
+      "label_name" : "act1",
+      "assignment" : "ML_OUT_SR ≔ on",
+      "comments" : ""
+    } ]
+  }, {
+    "event_name" : "ML_IN_ARR",
+    "REFINES" : [ ],
+    "ANY" : [ ],
+    "WHERE" : [ {
+      "label_name" : "grd1",
+      "predicate" : "ML_IN_SR = off",
+      "comments" : ""
+    }, {
+      "label_name" : "grd2",
+      "predicate" : "ml_in_10 = FALSE",
+      "comments" : ""
+    }, {
+      "label_name" : "grd3",
+      "predicate" : "C > 0",
+      "comments" : ""
+    } ],
+    "WITH" : [ ],
+    "THEN" : [ {
+      "label_name" : "act1",
+      "assignment" : "ML_IN_SR ≔ on",
+      "comments" : ""
+    } ]
+  }, {
+    "event_name" : "IL_IN_ARR",
+    "REFINES" : [ ],
+    "ANY" : [ ],
+    "WHERE" : [ {
+      "label_name" : "grd1",
+      "predicate" : "IL_IN_SR = off",
+      "comments" : ""
+    }, {
+      "label_name" : "grd2",
+      "predicate" : "il_in_10 = FALSE",
+      "comments" : ""
+    }, {
+      "label_name" : "grd3",
+      "predicate" : "A > 0",
+      "comments" : ""
+    } ],
+    "WITH" : [ ],
+    "THEN" : [ {
+      "label_name" : "act1",
+      "assignment" : "IL_IN_SR ≔ on",
+      "comments" : ""
+    } ]
+  }, {
+    "event_name" : "IL_OUT_ARR",
+    "REFINES" : [ ],
+    "ANY" : [ ],
+    "WHERE" : [ {
+      "label_name" : "grd1",
+      "predicate" : "IL_OUT_SR = off",
+      "comments" : ""
+    }, {
+      "label_name" : "grd2",
+      "predicate" : "il_out_10 = FALSE",
+      "comments" : ""
+    }, {
+      "label_name" : "grd3",
+      "predicate" : "B > 0",
+      "comments" : ""
+    } ],
+    "WITH" : [ ],
+    "THEN" : [ {
+      "label_name" : "act1",
+      "assignment" : "IL_OUT_SR ≔ on",
+      "comments" : ""
+    } ]
+  }, {
+    "event_name" : "ML_OUT_DEP",
+    "REFINES" : [ ],
+    "ANY" : [ ],
+    "WHERE" : [ {
+      "label_name" : "grd1",
+      "predicate" : "ML_OUT_SR = on",
+      "comments" : ""
+    }, {
+      "label_name" : "grd2",
+      "predicate" : "ml_tl = green",
+      "comments" : ""
+    } ],
+    "WITH" : [ ],
+    "THEN" : [ {
+      "label_name" : "act1",
+      "assignment" : "ML_OUT_SR ≔ off",
+      "comments" : ""
+    }, {
+      "label_name" : "act2",
+      "assignment" : "ml_out_10 ≔ TRUE",
+      "comments" : ""
+    }, {
+      "label_name" : "act3",
+      "assignment" : "A ≔ A+1",
+      "comments" : ""
+    } ]
+  }, {
+    "event_name" : "ML_IN_DEP",
+    "REFINES" : [ ],
+    "ANY" : [ ],
+    "WHERE" : [ {
+      "label_name" : "grd1",
+      "predicate" : "ML_IN_SR = on",
+      "comments" : ""
+    } ],
+    "WITH" : [ ],
+    "THEN" : [ {
+      "label_name" : "act1",
+      "assignment" : "ML_IN_SR ≔ off",
+      "comments" : ""
+    }, {
+      "label_name" : "act2",
+      "assignment" : "ml_in_10 ≔ TRUE",
+      "comments" : ""
+    }, {
+      "label_name" : "act3",
+      "assignment" : "C ≔ C−1",
+      "comments" : ""
+    } ]
+  }, {
+    "event_name" : "IL_IN_DEP",
+    "REFINES" : [ ],
+    "ANY" : [ ],
+    "WHERE" : [ {
+      "label_name" : "grd1",
+      "predicate" : "IL_IN_SR = on",
+      "comments" : ""
+    } ],
+    "WITH" : [ ],
+    "THEN" : [ {
+      "label_name" : "act1",
+      "assignment" : "IL_IN_SR ≔ off",
+      "comments" : ""
+    }, {
+      "label_name" : "act2",
+      "assignment" : "il_in_10 ≔ TRUE",
+      "comments" : ""
+    }, {
+      "label_name" : "act3",
+      "assignment" : "A ≔ A−1",
+      "comments" : ""
+    }, {
+      "label_name" : "act4",
+      "assignment" : "B ≔ B+1",
+      "comments" : ""
+    } ]
+  }, {
+    "event_name" : "IL_OUT_DEP",
+    "REFINES" : [ ],
+    "ANY" : [ ],
+    "WHERE" : [ {
+      "label_name" : "grd1",
+      "predicate" : "IL_OUT_SR = on",
+      "comments" : ""
+    }, {
+      "label_name" : "grd2",
+      "predicate" : "il_tl =  green",
+      "comments" : ""
+    } ],
+    "WITH" : [ ],
+    "THEN" : [ {
+      "label_name" : "act1",
+      "assignment" : "IL_OUT_SR ≔ off",
+      "comments" : ""
+    }, {
+      "label_name" : "act2",
+      "assignment" : "il_out_10 ≔ TRUE",
+      "comments" : ""
+    }, {
+      "label_name" : "act3",
+      "assignment" : "B ≔ B−1",
+      "comments" : ""
+    }, {
+      "label_name" : "act4",
+      "assignment" : "C ≔ C+1",
+      "comments" : ""
+    } ]
+  } ]
+}

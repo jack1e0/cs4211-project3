@@ -1,0 +1,756 @@
+{
+  "CONTEXT" : "press_ctx_0",
+  "EXTENDS" : [ ],
+  "SETS" : [ "STATUS" ],
+  "CONSTANTS" : [ "stopped", "working" ],
+  "AXIOMS" : [ {
+    "label_name" : "axm1",
+    "predicate" : "partition(STATUS, {stopped}, {working})",
+    "comments" : ""
+  } ]
+}
+
+{
+  "CONTEXT" : "press_ctx_2",
+  "EXTENDS" : [ ],
+  "SETS" : [ "CLUTCH" ],
+  "CONSTANTS" : [ "engaged", "disengaged" ],
+  "AXIOMS" : [ {
+    "label_name" : "axm1",
+    "predicate" : "partition(CLUTCH, {engaged}, {disengaged})",
+    "comments" : ""
+  } ]
+}
+
+{
+  "CONTEXT" : "press_ctx_3",
+  "EXTENDS" : [ ],
+  "SETS" : [ "DOOR" ],
+  "CONSTANTS" : [ "open", "closed" ],
+  "AXIOMS" : [ {
+    "label_name" : "axm1",
+    "predicate" : "partition(DOOR, {open}, {closed})",
+    "comments" : ""
+  } ]
+}
+
+{
+  "MACHINE" : "press_7",
+  "REFINES" : [ "press_6" ],
+  "SEES" : [ "press_ctx_0", "press_ctx_2", "press_ctx_3" ],
+  "VARIABLES" : [ "motor_actuator", "motor_sensor", "start_motor_button", "start_motor_impulse", "stop_motor_button", "stop_motor_impulse", "clutch_actuator", "clutch_sensor", "door_actuator", "door_sensor", "m", "start_clutch_button", "start_clutch_impulse", "stop_clutch_button", "stop_clutch_impulse" ],
+  "INVARIANTS" : [ {
+    "label_name" : "inv1",
+    "predicate" : "start_clutch_button ∈ BOOL",
+    "comments" : ""
+  }, {
+    "label_name" : "inv2",
+    "predicate" : "start_clutch_impulse ∈ BOOL",
+    "comments" : ""
+  }, {
+    "label_name" : "inv3",
+    "predicate" : "stop_clutch_button ∈ BOOL",
+    "comments" : ""
+  }, {
+    "label_name" : "inv4",
+    "predicate" : "stop_clutch_impulse ∈ BOOL",
+    "comments" : ""
+  } ],
+  "VARIANTS" : [ ],
+  "EVENTS" : [ {
+    "event_name" : "INITIALISATION",
+    "REFINES" : [ ],
+    "ANY" : [ ],
+    "WHERE" : [ ],
+    "WITH" : [ ],
+    "THEN" : [ {
+      "label_name" : "act1",
+      "assignment" : "motor_actuator ≔ stopped",
+      "comments" : ""
+    }, {
+      "label_name" : "act2",
+      "assignment" : "motor_sensor ≔ stopped",
+      "comments" : ""
+    }, {
+      "label_name" : "act3",
+      "assignment" : "start_motor_button ≔ FALSE",
+      "comments" : ""
+    }, {
+      "label_name" : "act4",
+      "assignment" : "start_motor_impulse ≔ FALSE",
+      "comments" : ""
+    }, {
+      "label_name" : "act5",
+      "assignment" : "stop_motor_button ≔ FALSE",
+      "comments" : ""
+    }, {
+      "label_name" : "act6",
+      "assignment" : "stop_motor_impulse ≔ FALSE",
+      "comments" : ""
+    }, {
+      "label_name" : "act7",
+      "assignment" : "clutch_actuator ≔ disengaged",
+      "comments" : ""
+    }, {
+      "label_name" : "act8",
+      "assignment" : "clutch_sensor ≔ disengaged",
+      "comments" : ""
+    }, {
+      "label_name" : "act9",
+      "assignment" : "door_actuator ≔ open",
+      "comments" : ""
+    }, {
+      "label_name" : "act10",
+      "assignment" : "door_sensor ≔ open",
+      "comments" : ""
+    }, {
+      "label_name" : "act11",
+      "assignment" : "m ≔ FALSE",
+      "comments" : ""
+    }, {
+      "label_name" : "act12",
+      "assignment" : "start_clutch_button ≔ FALSE",
+      "comments" : ""
+    }, {
+      "label_name" : "act13",
+      "assignment" : "start_clutch_impulse ≔ FALSE",
+      "comments" : ""
+    }, {
+      "label_name" : "act14",
+      "assignment" : "stop_clutch_button ≔ FALSE",
+      "comments" : ""
+    }, {
+      "label_name" : "act15",
+      "assignment" : "stop_clutch_impulse ≔ FALSE",
+      "comments" : ""
+    } ]
+  }, {
+    "event_name" : "motor_start",
+    "REFINES" : [ "motor_start" ],
+    "ANY" : [ ],
+    "WHERE" : [ {
+      "label_name" : "grd1",
+      "predicate" : "motor_sensor = stopped",
+      "comments" : ""
+    }, {
+      "label_name" : "grd2",
+      "predicate" : "motor_actuator = working",
+      "comments" : ""
+    } ],
+    "WITH" : [ ],
+    "THEN" : [ {
+      "label_name" : "act1",
+      "assignment" : "motor_sensor ≔ working",
+      "comments" : ""
+    } ]
+  }, {
+    "event_name" : "motor_stop",
+    "REFINES" : [ "motor_stop" ],
+    "ANY" : [ ],
+    "WHERE" : [ {
+      "label_name" : "grd1",
+      "predicate" : "motor_sensor = working",
+      "comments" : ""
+    }, {
+      "label_name" : "grd2",
+      "predicate" : "motor_actuator = stopped",
+      "comments" : ""
+    } ],
+    "WITH" : [ ],
+    "THEN" : [ {
+      "label_name" : "act1",
+      "assignment" : "motor_sensor ≔ stopped",
+      "comments" : ""
+    } ]
+  }, {
+    "event_name" : "clutch_start",
+    "REFINES" : [ "clutch_start" ],
+    "ANY" : [ ],
+    "WHERE" : [ {
+      "label_name" : "grd1",
+      "predicate" : "clutch_sensor = disengaged",
+      "comments" : ""
+    }, {
+      "label_name" : "grd2",
+      "predicate" : "clutch_actuator = engaged",
+      "comments" : ""
+    } ],
+    "WITH" : [ ],
+    "THEN" : [ {
+      "label_name" : "act1",
+      "assignment" : "clutch_sensor ≔ engaged",
+      "comments" : ""
+    } ]
+  }, {
+    "event_name" : "clutch_stop",
+    "REFINES" : [ "clutch_stop" ],
+    "ANY" : [ ],
+    "WHERE" : [ {
+      "label_name" : "grd1",
+      "predicate" : "clutch_sensor = engaged",
+      "comments" : ""
+    }, {
+      "label_name" : "grd2",
+      "predicate" : "clutch_actuator = disengaged",
+      "comments" : ""
+    } ],
+    "WITH" : [ ],
+    "THEN" : [ {
+      "label_name" : "act1",
+      "assignment" : "clutch_sensor ≔ disengaged",
+      "comments" : ""
+    } ]
+  }, {
+    "event_name" : "door_close",
+    "REFINES" : [ "door_close" ],
+    "ANY" : [ ],
+    "WHERE" : [ {
+      "label_name" : "grd1",
+      "predicate" : "door_sensor = open",
+      "comments" : ""
+    }, {
+      "label_name" : "grd2",
+      "predicate" : "door_actuator = closed",
+      "comments" : ""
+    } ],
+    "WITH" : [ ],
+    "THEN" : [ {
+      "label_name" : "act1",
+      "assignment" : "door_sensor ≔ closed",
+      "comments" : ""
+    } ]
+  }, {
+    "event_name" : "door_open",
+    "REFINES" : [ "door_open" ],
+    "ANY" : [ ],
+    "WHERE" : [ {
+      "label_name" : "grd1",
+      "predicate" : "door_sensor = closed",
+      "comments" : ""
+    }, {
+      "label_name" : "grd2",
+      "predicate" : "door_actuator = open",
+      "comments" : ""
+    } ],
+    "WITH" : [ ],
+    "THEN" : [ {
+      "label_name" : "act1",
+      "assignment" : "door_sensor ≔ open",
+      "comments" : ""
+    } ]
+  }, {
+    "event_name" : "push_start_motor_button",
+    "REFINES" : [ "push_start_motor_button" ],
+    "ANY" : [ ],
+    "WHERE" : [ {
+      "label_name" : "grd1",
+      "predicate" : "start_motor_button = FALSE",
+      "comments" : ""
+    } ],
+    "WITH" : [ ],
+    "THEN" : [ {
+      "label_name" : "act1",
+      "assignment" : "start_motor_button ≔ TRUE",
+      "comments" : ""
+    } ]
+  }, {
+    "event_name" : "release_start_motor_button",
+    "REFINES" : [ "release_start_motor_button" ],
+    "ANY" : [ ],
+    "WHERE" : [ {
+      "label_name" : "grd1",
+      "predicate" : "start_motor_button = TRUE",
+      "comments" : ""
+    } ],
+    "WITH" : [ ],
+    "THEN" : [ {
+      "label_name" : "act1",
+      "assignment" : "start_motor_button ≔ FALSE",
+      "comments" : ""
+    } ]
+  }, {
+    "event_name" : "push_stop_motor_button",
+    "REFINES" : [ "push_stop_motor_button" ],
+    "ANY" : [ ],
+    "WHERE" : [ {
+      "label_name" : "grd1",
+      "predicate" : "stop_motor_button = FALSE",
+      "comments" : ""
+    } ],
+    "WITH" : [ ],
+    "THEN" : [ {
+      "label_name" : "act1",
+      "assignment" : "stop_motor_button ≔ TRUE",
+      "comments" : ""
+    } ]
+  }, {
+    "event_name" : "release_stop_motor_button",
+    "REFINES" : [ "release_stop_motor_button" ],
+    "ANY" : [ ],
+    "WHERE" : [ {
+      "label_name" : "grd1",
+      "predicate" : "stop_motor_button = TRUE",
+      "comments" : ""
+    } ],
+    "WITH" : [ ],
+    "THEN" : [ {
+      "label_name" : "act1",
+      "assignment" : "stop_motor_button ≔ FALSE",
+      "comments" : ""
+    } ]
+  }, {
+    "event_name" : "push_start_clutch_button",
+    "REFINES" : [ ],
+    "ANY" : [ ],
+    "WHERE" : [ {
+      "label_name" : "grd1",
+      "predicate" : "start_clutch_button = FALSE",
+      "comments" : ""
+    } ],
+    "WITH" : [ ],
+    "THEN" : [ {
+      "label_name" : "act1",
+      "assignment" : "start_clutch_button ≔ TRUE",
+      "comments" : ""
+    } ]
+  }, {
+    "event_name" : "release_start_clutch_button",
+    "REFINES" : [ ],
+    "ANY" : [ ],
+    "WHERE" : [ {
+      "label_name" : "grd1",
+      "predicate" : "start_clutch_button = TRUE",
+      "comments" : ""
+    } ],
+    "WITH" : [ ],
+    "THEN" : [ {
+      "label_name" : "act1",
+      "assignment" : "start_clutch_button ≔ FALSE",
+      "comments" : ""
+    } ]
+  }, {
+    "event_name" : "push_stop_clutch_button",
+    "REFINES" : [ ],
+    "ANY" : [ ],
+    "WHERE" : [ {
+      "label_name" : "grd1",
+      "predicate" : "stop_clutch_button = FALSE",
+      "comments" : ""
+    } ],
+    "WITH" : [ ],
+    "THEN" : [ {
+      "label_name" : "act1",
+      "assignment" : "stop_clutch_button ≔ TRUE",
+      "comments" : ""
+    } ]
+  }, {
+    "event_name" : "release_stop_clutch_button",
+    "REFINES" : [ ],
+    "ANY" : [ ],
+    "WHERE" : [ {
+      "label_name" : "grd1",
+      "predicate" : "stop_clutch_button = TRUE",
+      "comments" : ""
+    } ],
+    "WITH" : [ ],
+    "THEN" : [ {
+      "label_name" : "act1",
+      "assignment" : "stop_clutch_button ≔ FALSE",
+      "comments" : ""
+    } ]
+  }, {
+    "event_name" : "treat_start_motor",
+    "REFINES" : [ "treat_start_motor" ],
+    "ANY" : [ ],
+    "WHERE" : [ {
+      "label_name" : "grd1",
+      "predicate" : "motor_sensor = stopped",
+      "comments" : ""
+    }, {
+      "label_name" : "grd2",
+      "predicate" : "motor_actuator = stopped",
+      "comments" : ""
+    }, {
+      "label_name" : "grd3",
+      "predicate" : "start_motor_impulse = FALSE",
+      "comments" : ""
+    }, {
+      "label_name" : "grd4",
+      "predicate" : "start_motor_button = TRUE",
+      "comments" : ""
+    } ],
+    "WITH" : [ ],
+    "THEN" : [ {
+      "label_name" : "act1",
+      "assignment" : "motor_actuator ≔ working",
+      "comments" : ""
+    }, {
+      "label_name" : "act2",
+      "assignment" : "start_motor_impulse ≔ TRUE",
+      "comments" : ""
+    } ]
+  }, {
+    "event_name" : "treat_start_motor_false",
+    "REFINES" : [ "treat_start_motor_false" ],
+    "ANY" : [ ],
+    "WHERE" : [ {
+      "label_name" : "grd1",
+      "predicate" : "start_motor_impulse = FALSE",
+      "comments" : ""
+    }, {
+      "label_name" : "grd2",
+      "predicate" : "start_motor_button = TRUE",
+      "comments" : ""
+    }, {
+      "label_name" : "grd3",
+      "predicate" : "¬(motor_sensor = stopped ∧ \n  motor_actuator = stopped)",
+      "comments" : ""
+    } ],
+    "WITH" : [ ],
+    "THEN" : [ {
+      "label_name" : "act1",
+      "assignment" : "start_motor_impulse ≔ TRUE",
+      "comments" : ""
+    } ]
+  }, {
+    "event_name" : "treat_stop_motor",
+    "REFINES" : [ "treat_stop_motor" ],
+    "ANY" : [ ],
+    "WHERE" : [ {
+      "label_name" : "grd1",
+      "predicate" : "motor_sensor = working",
+      "comments" : ""
+    }, {
+      "label_name" : "grd2",
+      "predicate" : "motor_actuator = working",
+      "comments" : ""
+    }, {
+      "label_name" : "grd3",
+      "predicate" : "stop_motor_impulse = FALSE",
+      "comments" : ""
+    }, {
+      "label_name" : "grd4",
+      "predicate" : "stop_motor_button = TRUE",
+      "comments" : ""
+    }, {
+      "label_name" : "grd5",
+      "predicate" : "clutch_sensor = disengaged",
+      "comments" : ""
+    }, {
+      "label_name" : "grd6",
+      "predicate" : "clutch_actuator = disengaged",
+      "comments" : ""
+    }, {
+      "label_name" : "grd7",
+      "predicate" : "door_sensor = open",
+      "comments" : ""
+    }, {
+      "label_name" : "grd8",
+      "predicate" : "door_actuator = open",
+      "comments" : ""
+    } ],
+    "WITH" : [ ],
+    "THEN" : [ {
+      "label_name" : "act1",
+      "assignment" : "motor_actuator ≔ stopped",
+      "comments" : ""
+    }, {
+      "label_name" : "act2",
+      "assignment" : "stop_motor_impulse ≔ TRUE",
+      "comments" : ""
+    } ]
+  }, {
+    "event_name" : "treat_stop_motor_false",
+    "REFINES" : [ "treat_stop_motor_false" ],
+    "ANY" : [ ],
+    "WHERE" : [ {
+      "label_name" : "grd1",
+      "predicate" : "stop_motor_impulse = FALSE",
+      "comments" : ""
+    }, {
+      "label_name" : "grd2",
+      "predicate" : "stop_motor_button = TRUE",
+      "comments" : ""
+    }, {
+      "label_name" : "grd3",
+      "predicate" : "¬(motor_sensor = working ∧ \n  motor_actuator = working ∧\n  clutch_sensor = disengaged ∧\n  clutch_actuator = disengaged ∧\n  door_sensor = open ∧\n  door_actuator = open)",
+      "comments" : ""
+    } ],
+    "WITH" : [ ],
+    "THEN" : [ {
+      "label_name" : "act1",
+      "assignment" : "stop_motor_impulse ≔ TRUE",
+      "comments" : ""
+    } ]
+  }, {
+    "event_name" : "treat_release_start_motor_button",
+    "REFINES" : [ "treat_release_start_motor_button" ],
+    "ANY" : [ ],
+    "WHERE" : [ {
+      "label_name" : "grd1",
+      "predicate" : "start_motor_impulse = TRUE",
+      "comments" : ""
+    }, {
+      "label_name" : "grd2",
+      "predicate" : "start_motor_button = FALSE",
+      "comments" : ""
+    } ],
+    "WITH" : [ ],
+    "THEN" : [ {
+      "label_name" : "act1",
+      "assignment" : "start_motor_impulse ≔ FALSE",
+      "comments" : ""
+    } ]
+  }, {
+    "event_name" : "treat_release_stop_motor_button",
+    "REFINES" : [ "treat_release_stop_motor_button" ],
+    "ANY" : [ ],
+    "WHERE" : [ {
+      "label_name" : "grd1",
+      "predicate" : "stop_motor_impulse = TRUE",
+      "comments" : ""
+    }, {
+      "label_name" : "grd2",
+      "predicate" : "stop_motor_button = FALSE",
+      "comments" : ""
+    } ],
+    "WITH" : [ ],
+    "THEN" : [ {
+      "label_name" : "act1",
+      "assignment" : "stop_motor_impulse ≔ FALSE",
+      "comments" : ""
+    } ]
+  }, {
+    "event_name" : "treat_start_clutch",
+    "REFINES" : [ "treat_start_clutch" ],
+    "ANY" : [ ],
+    "WHERE" : [ {
+      "label_name" : "grd1",
+      "predicate" : "clutch_actuator = disengaged",
+      "comments" : ""
+    }, {
+      "label_name" : "grd2",
+      "predicate" : "clutch_sensor = disengaged",
+      "comments" : ""
+    }, {
+      "label_name" : "grd3",
+      "predicate" : "motor_sensor = working",
+      "comments" : ""
+    }, {
+      "label_name" : "grd4",
+      "predicate" : "motor_actuator = working",
+      "comments" : ""
+    }, {
+      "label_name" : "grd5",
+      "predicate" : "door_sensor = closed",
+      "comments" : ""
+    }, {
+      "label_name" : "grd6",
+      "predicate" : "door_actuator = closed",
+      "comments" : ""
+    }, {
+      "label_name" : "grd7",
+      "predicate" : "m = TRUE",
+      "comments" : ""
+    } ],
+    "WITH" : [ ],
+    "THEN" : [ {
+      "label_name" : "act1",
+      "assignment" : "clutch_actuator ≔ engaged",
+      "comments" : ""
+    }, {
+      "label_name" : "act2",
+      "assignment" : "m ≔ FALSE",
+      "comments" : ""
+    } ]
+  }, {
+    "event_name" : "treat_stop_clutch",
+    "REFINES" : [ "treat_stop_clutch" ],
+    "ANY" : [ ],
+    "WHERE" : [ {
+      "label_name" : "grd1",
+      "predicate" : "clutch_actuator = engaged",
+      "comments" : ""
+    }, {
+      "label_name" : "grd2",
+      "predicate" : "clutch_sensor = engaged",
+      "comments" : ""
+    }, {
+      "label_name" : "grd3",
+      "predicate" : "stop_clutch_impulse = FALSE",
+      "comments" : ""
+    }, {
+      "label_name" : "grd4",
+      "predicate" : "stop_clutch_button = TRUE",
+      "comments" : ""
+    } ],
+    "WITH" : [ ],
+    "THEN" : [ {
+      "label_name" : "act1",
+      "assignment" : "clutch_actuator ≔ disengaged",
+      "comments" : ""
+    }, {
+      "label_name" : "act2",
+      "assignment" : "stop_clutch_impulse ≔ TRUE",
+      "comments" : ""
+    } ]
+  }, {
+    "event_name" : "treat_stop_clutch_false",
+    "REFINES" : [ ],
+    "ANY" : [ ],
+    "WHERE" : [ {
+      "label_name" : "grd1",
+      "predicate" : "stop_clutch_impulse = FALSE",
+      "comments" : ""
+    }, {
+      "label_name" : "grd2",
+      "predicate" : "stop_clutch_button = TRUE",
+      "comments" : ""
+    }, {
+      "label_name" : "grd3",
+      "predicate" : "¬(clutch_sensor=engaged ∧ \n  clutch_actuator = engaged)",
+      "comments" : ""
+    } ],
+    "WITH" : [ ],
+    "THEN" : [ {
+      "label_name" : "act1",
+      "assignment" : "stop_clutch_impulse ≔ TRUE",
+      "comments" : ""
+    } ]
+  }, {
+    "event_name" : "treat_close_door",
+    "REFINES" : [ "treat_close_door" ],
+    "ANY" : [ ],
+    "WHERE" : [ {
+      "label_name" : "grd1",
+      "predicate" : "door_actuator = open",
+      "comments" : ""
+    }, {
+      "label_name" : "grd2",
+      "predicate" : "door_sensor = open",
+      "comments" : ""
+    }, {
+      "label_name" : "grd3",
+      "predicate" : "motor_sensor = working",
+      "comments" : ""
+    }, {
+      "label_name" : "grd4",
+      "predicate" : "motor_actuator = working",
+      "comments" : ""
+    }, {
+      "label_name" : "grd5",
+      "predicate" : "start_clutch_impulse = FALSE",
+      "comments" : ""
+    }, {
+      "label_name" : "grd6",
+      "predicate" : "start_clutch_button = TRUE",
+      "comments" : ""
+    } ],
+    "WITH" : [ ],
+    "THEN" : [ {
+      "label_name" : "act1",
+      "assignment" : "door_actuator ≔ closed",
+      "comments" : ""
+    }, {
+      "label_name" : "act2",
+      "assignment" : "m ≔ TRUE",
+      "comments" : ""
+    }, {
+      "label_name" : "act3",
+      "assignment" : "start_clutch_impulse ≔ TRUE",
+      "comments" : ""
+    } ]
+  }, {
+    "event_name" : "treat_close_door_false",
+    "REFINES" : [ ],
+    "ANY" : [ ],
+    "WHERE" : [ {
+      "label_name" : "grd1",
+      "predicate" : "start_clutch_impulse = FALSE",
+      "comments" : ""
+    }, {
+      "label_name" : "grd2",
+      "predicate" : "start_clutch_button = TRUE",
+      "comments" : ""
+    }, {
+      "label_name" : "grd3",
+      "predicate" : "¬(motor_sensor=working ∧ \n  motor_actuator =working ∧\n  door_actuator=open ∧ \n  door_sensor = open)",
+      "comments" : ""
+    } ],
+    "WITH" : [ ],
+    "THEN" : [ {
+      "label_name" : "act1",
+      "assignment" : "start_clutch_impulse ≔ TRUE",
+      "comments" : ""
+    } ]
+  }, {
+    "event_name" : "treat_open_door",
+    "REFINES" : [ "treat_open_door" ],
+    "ANY" : [ ],
+    "WHERE" : [ {
+      "label_name" : "grd1",
+      "predicate" : "door_actuator = closed",
+      "comments" : ""
+    }, {
+      "label_name" : "grd2",
+      "predicate" : "door_sensor = closed",
+      "comments" : ""
+    }, {
+      "label_name" : "grd3",
+      "predicate" : "clutch_sensor = disengaged",
+      "comments" : ""
+    }, {
+      "label_name" : "grd4",
+      "predicate" : "clutch_actuator = disengaged",
+      "comments" : ""
+    }, {
+      "label_name" : "grd5",
+      "predicate" : "m = FALSE",
+      "comments" : ""
+    } ],
+    "WITH" : [ ],
+    "THEN" : [ {
+      "label_name" : "act1",
+      "assignment" : "door_actuator ≔ open",
+      "comments" : ""
+    } ]
+  }, {
+    "event_name" : "treat_release_start_clutch_button",
+    "REFINES" : [ ],
+    "ANY" : [ ],
+    "WHERE" : [ {
+      "label_name" : "grd1",
+      "predicate" : "start_clutch_impulse = TRUE",
+      "comments" : ""
+    }, {
+      "label_name" : "grd2",
+      "predicate" : "start_clutch_button = FALSE",
+      "comments" : ""
+    } ],
+    "WITH" : [ ],
+    "THEN" : [ {
+      "label_name" : "act1",
+      "assignment" : "start_clutch_impulse ≔ FALSE",
+      "comments" : ""
+    } ]
+  }, {
+    "event_name" : "treat_release_stop_clutch_button",
+    "REFINES" : [ ],
+    "ANY" : [ ],
+    "WHERE" : [ {
+      "label_name" : "grd1",
+      "predicate" : "stop_clutch_impulse = TRUE",
+      "comments" : ""
+    }, {
+      "label_name" : "grd2",
+      "predicate" : "stop_clutch_button = FALSE",
+      "comments" : ""
+    } ],
+    "WITH" : [ ],
+    "THEN" : [ {
+      "label_name" : "act1",
+      "assignment" : "stop_clutch_impulse ≔ FALSE",
+      "comments" : ""
+    } ]
+  } ]
+}
