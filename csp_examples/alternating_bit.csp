@@ -1,0 +1,29 @@
+//=======================Model Details===========================
+#define CHANNELSIZE 1;
+
+channel c CHANNELSIZE; //unreliable channel.
+channel d CHANNELSIZE; //perfect channel.
+channel tmr 0; //a synchronous channel between sender and timer, which is used to implement premature timeout.
+
+Sender(alterbit) = (c!alterbit -> Skip [] lost -> Skip);
+                                  tmr!1 -> Wait4Response(alterbit);
+
+Wait4Response(alterbit) = (d?x -> ifa (x==alterbit) {
+                                      tmr!0 -> Sender(1-alterbit)
+                                  } else {
+                                      Wait4Response(alterbit)
+                                  })
+                          [] tmr?2 -> Sender(alterbit);
+
+Receiver(alterbit) = c?x -> ifa (x==alterbit) {
+                                 d!alterbit -> Receiver(1-alterbit)
+                            } else {
+                                 Receiver(alterbit)
+                            };
+
+Timer = tmr?1 -> (tmr?0 -> Timer [] tmr!2 -> Timer);
+
+ABP = Sender(0) ||| Receiver(0) ||| Timer;
+
+#assert ABP deadlockfree;
+#assert ABP |= []<> lost;

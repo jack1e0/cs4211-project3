@@ -1,0 +1,32 @@
+//The classic Readers/Writers Example model multiple processes accessing a shared file.
+
+////////////////The Model//////////////////
+#define M 10;
+
+Writer() 	= startwrite -> stopwrite -> Writer();
+Reader() 	= startread -> stopread -> Reader();
+Reading(i) 	= [i == 0]Controller() []
+	 	 	 	 [i == M] stopread -> Reading(i-1) []
+	 	 	 	 [i > 0 && i < M] (startread -> Reading(i+1) [] stopread -> Reading(i-1));
+
+Controller() 	= startread -> Reading(1)
+	 	 	 	 [] stopread -> error -> Controller()
+	 	 	 	 [] startwrite -> (stopwrite -> Controller() [] stopread -> error -> Controller());
+
+ReadersWriters() = Controller() || (|||x:{0..M-1} @ (Reader() ||| Writer()));
+
+Implementation() 	= ReadersWriters() \ {startread, stopread, startwrite, stopwrite};
+Specification() 	= error -> Specification();
+
+#alphabet Reading {startread,stopread};
+
+////////////////The Properties//////////////////
+#assert ReadersWriters() deadlockfree;
+#assert ReadersWriters() |= []<>error;
+#assert ReadersWriters() |= ![]<>error;
+#assert Implementation() refines Specification();
+#assert Specification() refines Implementation();
+#assert Implementation() refines <F> Specification();
+#assert Specification() refines <F> Implementation();
+#assert Implementation() refines <FD> Specification();
+#assert Specification() refines <FD> Implementation();

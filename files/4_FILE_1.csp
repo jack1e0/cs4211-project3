@@ -1,0 +1,67 @@
+```csp
+#define n 10;
+
+var h = 0;
+var r = 1;
+var s = 1;
+var d = 0;
+var p = 1;
+var q = 1;
+var b = 0;
+
+// Init
+Init() = init{
+    h = 0;
+    r = 1;
+    s = 1;
+    d = 0;
+    p = 1;
+    q = 1;
+    b = 0;
+} -> Skip;
+
+// Final
+Final() =
+    if (r == n + 1 && b == 0)
+    {
+        final{ b = 1; } -> Final()
+    }
+    [] if (!(r == n + 1 && b == 0))
+    {
+        tau -> Final()
+    };
+
+// Receive
+Receive() =
+    if (p != q)
+    {
+        receive{ h = d; r = r + 1; q = 1 - q; } -> Receive()
+    }
+    [] if (p == q)
+    {
+        tau -> Receive()
+    };
+
+// Send
+Send() =
+    if (p == q && s != n + 1 && p == (s % 2) && q == (r % 2))
+    {
+        send{ d = s; s = s + 1; p = 1 - p; } -> Send()
+    }
+    [] if (!(p == q && s != n + 1 && p == (s % 2) && q == (r % 2)))
+    {
+        tau -> Send()
+    };
+
+// System
+System() = Init() -> (Final() ||| Receive() ||| Send());
+
+// Assertions
+#define parity_invariant_p (p == (s % 2));
+#define parity_invariant_q (q == (r % 2));
+
+#assert System() reaches parity_invariant_p;
+#assert System() reaches parity_invariant_q;
+
+#assert System() deadlockfree;
+```

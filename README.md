@@ -14,7 +14,7 @@ cp .env.example .env   # set OPENAI_API_KEY
 python -m patgen path/to/file.txt --dump-brief brief.md
 ```
 
-Writes PAT source to `path/to/file.out` by default. Use `-o` / `--output` to pick another path.
+Writes PAT source to `path/to/file.csp` by default. Use `-o` / `--output` to pick another path.
 
 Example:
 

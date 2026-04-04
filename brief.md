@@ -1,74 +1,93 @@
-## System description
-The system is defined within the context of a formal model that utilizes Event-B notation. It involves a mechanism to manage and track parity values associated with certain variables. The model includes events for initialization, receiving data, and sending data, with specific conditions and actions tied to these events.
+
+    ## System description
+The system manages a communication mechanism where data is sent and received based on the parity of certain state variables.
 
 ## Requirements
-- The system must maintain the parity of two variables, `s` and `r`, which are updated through various events.
-- The system must initialize its variables to specific values.
-- The system must allow for receiving and sending data based on the parity of the variables.
+- The system must initialize state variables to specific values.
+- The system must allow sending data when certain conditions on parity and state variables are met.
+- The system must allow receiving data when the parity of two state variables differs.
+- The system must track whether a final condition has been reached.
 
 ## Constants
-- **parity**: A function that maps natural numbers to integers, representing the parity (even or odd) of a number.
+- `parity`: A function mapping natural numbers to integers.
 
 ## Variables
-- **h**: A mapping that stores data received.
-- **r**: An integer representing a count or index related to received data.
-- **s**: An integer representing a count or index related to sent data.
-- **d**: A variable that holds the data being sent or received.
-- **p**: An integer representing the parity of `s`.
-- **q**: An integer representing the parity of `r`.
-- **b**: A boolean flag indicating a specific state in the system.
+- `h`: A collection (e.g., array or map) to hold received data.
+- `r`: A counter for received messages, initialized to 1.
+- `s`: A counter for sent messages, initialized to 1.
+- `d`: A variable representing the data to be sent or received.
+- `p`: A variable representing the parity of `s`.
+- `q`: A variable representing the parity of `r`.
+- `b`: A boolean flag indicating whether the final condition has been reached.
 
 ## States
-The system can be in various states based on the values of its variables, particularly the parity values of `s` and `r`, and the boolean flag `b`.
+- The system can be in a state where `b` is `TRUE` (final condition reached) or `FALSE` (final condition not reached).
+- The values of `p` and `q` reflect the parity of `s` and `r`, respectively.
+
+## Events / Operations
+- **INITIALISATION**
+  - Purpose: Set initial values for all state variables.
+  
+- **final**
+  - Purpose: Set the final condition flag to `TRUE` when certain conditions are met.
+  
+- **receive**
+  - Purpose: Store received data and update counters when the parity of `p` and `q` differs.
+  
+- **send**
+  - Purpose: Send data and update counters when the parity of `p` and `q` is the same and other conditions are satisfied.
 
 ## Guards
-- **For the `final` event**:
-  - `r = n + 1`: Ensures that `r` is one more than a natural number `n`.
-  - `b = FALSE`: Ensures that the boolean flag `b` is false.
-
-- **For the `receive` event**:
-  - `p ≠ q`: Ensures that the parity of `s` is not equal to the parity of `r`.
-
-- **For the `send` event**:
-  - `p = q`: Ensures that the parity of `s` is equal to the parity of `r`.
-  - `s ≠ n + 1`: Ensures that `s` is not one more than a natural number `n`.
-  - `p = parity(s)`: Ensures that `p` correctly reflects the parity of `s`.
-  - `q = parity(r)`: Ensures that `q` correctly reflects the parity of `r`.
+- **INITIALISATION**: No guards.
+- **final**: Enabled when `r = n + 1` and `b = FALSE`.
+- **receive**: Enabled when `p ≠ q`.
+- **send**: Enabled when `p = q`, `s ≠ n + 1`, `p = parity(s)`, and `q = parity(r)`.
 
 ## Actions
-- **Initialization**:
-  - Set `h` to an empty mapping.
-  - Set `r` to 1.
-  - Set `s` to 1.
-  - Assign a value from set `D` to `d`.
-  - Set `p` to 1.
-  - Set `q` to 1.
-  - Set `b` to FALSE.
-
-- **Final event**:
-  - Set `b` to TRUE.
-
-- **Receive event**:
-  - Assign `d` to `h(r)`.
-  - Increment `r` by 1.
-  - Toggle the value of `q`.
-
-- **Send event**:
-  - Assign the result of function `f(s)` to `d`.
-  - Increment `s` by 1.
-  - Toggle the value of `p`.
+- **INITIALISATION**:
+  - `h ≔ ∅`
+  - `r ≔ 1`
+  - `s ≔ 1`
+  - `d :∈ D`
+  - `p ≔ 1`
+  - `q ≔ 1`
+  - `b ≔ FALSE`
+  
+- **final**:
+  - `b ≔ TRUE`
+  
+- **receive**:
+  - `h(r) ≔ d`
+  - `r ≔ r + 1`
+  - `q ≔ 1 - q`
+  
+- **send**:
+  - `d ≔ f(s)`
+  - `s ≔ s + 1`
+  - `p ≔ 1 - p`
 
 ## Initialisation
-The system initializes all variables to specific starting values, ensuring that the state is set up correctly for subsequent operations.
+- `h` is initialized to an empty collection.
+- `r` is initialized to 1.
+- `s` is initialized to 1.
+- `d` is initialized to an element of set `D`.
+- `p` is initialized to 1.
+- `q` is initialized to 1.
+- `b` is initialized to `FALSE`.
 
 ## Invariants
-- **inv1**: The parity `p` must always equal the parity of `s`.
-- **inv2**: The parity `q` must always equal the parity of `r`.
+- `p = parity(s)`
+- `q = parity(r)`
 
 ## Assumptions
-- The function `parity` is well-defined for all natural numbers.
-- The mapping `h` is capable of storing data indexed by `r`.
+- The function `f` is defined and applicable for the variable `s`.
+- The set `D` is defined and contains valid elements for `d`.
+
+## Concurrency model
+- The system operates with a single process.
+- Interaction is through shared state (variables).
+- No specific scheduling assumptions are made.
 
 ## Other notes
-- The model relies on the parity function to enforce certain conditions on the variables `s` and `r`, ensuring that the system behaves correctly in terms of data handling and state transitions.
-- The boolean variable `b` serves as a flag to indicate when the system has reached a final state.
+- The model does not utilize bounded queues or arrays beyond the defined variables.
+

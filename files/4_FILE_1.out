@@ -1,25 +1,40 @@
-#define CHANNELSIZE 1;
+var h;
+var r = 1;
+var s = 1;
+var d;
+var p = 1;
+var q = 1;
+var b = FALSE;
 
-channel init CHANNELSIZE; // channel for initialization
-channel recv CHANNELSIZE; // channel for receiving data
-channel send CHANNELSIZE; // channel for sending data
+process INITIALISATION() =
+    h := ∅;
+    r := 1;
+    s := 1;
+    d :∈ D;
+    p := 1;
+    q := 1;
+    b := FALSE;
 
-// Process definitions
-Init = (init!() -> SetInitialValues);
+process final() =
+    if (r = n + 1 && b = FALSE) {
+        b := TRUE;
+    };
 
-SetInitialValues = (h := {} -> r := 1 -> s := 1 -> d := D!x -> p := 1 -> q := 1 -> b := FALSE -> Main);
+process receive() =
+    if (p ≠ q) {
+        h(r) := d;
+        r := r + 1;
+        q := 1 - q;
+    };
 
-Receive = (recv?d -> h(r) := d -> r := r + 1 -> q := 1 - q -> Main);
+process send() =
+    if (p = q && s ≠ n + 1 && p = parity(s) && q = parity(r)) {
+        d := f(s);
+        s := s + 1;
+        p := 1 - p;
+    };
 
-Send = (send!f(s) -> d := f(s) -> s := s + 1 -> p := 1 - p -> Main);
+process System() =
+    INITIALISATION() ||| final() ||| receive() ||| send();
 
-Final = (b := TRUE -> Skip);
-
-Main = (Init [] Receive [] Send [] Final);
-
-#system Main;
-#alphabet init, recv, send;
-#endalphabet; 
-
-#assert Main deadlockfree;
-#assert Main |= []<> b = TRUE;
+#assert System() deadlockfree;

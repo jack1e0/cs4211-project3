@@ -1,0 +1,18 @@
+//@@Dining Philosopher@@
+////////////////The Model//////////////////
+#define N 2;
+
+Phil(i) = get.i.(i+1)%N -> get.i.i -> eat.i -> put.i.(i+1)%N -> put.i.i -> Phil(i);
+Fork(x) = get.x.x -> put.x.x -> Fork(x) [] get.(x-1)%N.x -> put.(x-1)%N.x -> Fork(x);
+College() = ||x:{0..N-1}@(Phil(x)||Fork(x));
+Implementation() = College() \ {get.0.0,get.0.1,put.0.0,put.0.1,eat.1,get.1.1,get.1.0,put.1.1,put.1.0};
+Specification() = eat.0 -> Specification();
+////////////////The Properties//////////////////
+#assert College() deadlockfree;
+#assert College() |= []<> eat.0;
+#assert Implementation() refines Specification();
+#assert Specification() refines Implementation();
+#assert Implementation() refines <F> Specification();
+#assert Specification() refines <F> Implementation();
+#assert Implementation() refines <FD> Specification();
+#assert Specification() refines <FD> Implementation();

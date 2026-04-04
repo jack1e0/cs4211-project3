@@ -11,8 +11,8 @@ from patgen.pipeline import run_pipeline
 
 
 def default_pat_output_path(input_path: Path) -> Path:
-    """Same directory as input, stem plus `.out` (e.g. `model.txt` -> `model.out`)."""
-    return input_path.with_suffix(".out")
+    """Same directory as input, stem plus `.csp` (e.g. `model.txt` -> `model.csp`)."""
+    return input_path.with_suffix(".csp")
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -35,7 +35,7 @@ def main(argv: list[str] | None = None) -> int:
         "--output",
         type=Path,
         default=None,
-        help="Write PAT source to this file (default: <input_stem>.out next to the input file)",
+        help="Write PAT source to this file (default: <input_stem>.csp next to the input file)",
     )
     parser.add_argument(
         "--dump-brief",

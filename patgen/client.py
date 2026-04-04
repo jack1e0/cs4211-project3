@@ -6,79 +6,212 @@ from openai import OpenAI
 
 from patgen.config import Config
 
-STAGE1_SYSTEM_DEFAULT = """You are a formal methods assistant. Your job is to read a source \
-file (Event-B style text or Rust) and produce a faithful natural-language requirements documentation for another \
-model that will encode the system in PAT/CSP-style notation.
+NATURAL_LANGUAGE_REQUIREMENTS = """You are a formal methods assistant. Your task is to read a source file \
+(Event-B style text or Rust) and produce precise natural-language requirements for a model that will later be encoded in \
+PAT using CSP or CSP#.
 
-Rules:
-- Extract only what is stated or clearly implied; do not invent behaviors.
-- Use these section headings as a guide to structure the documentation:
-  ## System description
-  ## Requirements
-  ## Constants
-  ## Variables
-  ## States
-  ## Guards
-  ## Actions
-  ## Initialisation
-  ## Invariants
-  ## Assumptions
-  ## Other notes
-- Write clear prose and bullet lists inside sections when helpful."""
+Strict rules:
+- Do NOT invent behavior. Only include what is explicitly stated or logically implied.
+- If something is unclear or underspecified, state it under "Assumptions".
+- Prefer precision over verbosity.
+- Use consistent naming (do not rename variables arbitrarily).
+- Distinguish clearly between state (variables) and behavior (events/actions).
+- Extract concurrency, synchronization, and ordering constraints explicitly.
+
+Structure your output using these exact sections:
+
+## System description
+Brief high-level purpose of the system.
+
+## Requirements
+Bullet list of functional requirements (what the system must do).
+
+## Constants
+All fixed parameters and bounds.
+
+## Variables
+All mutable state variables with meaning.
+
+## States
+Describe meaningful system states (derived from variables if needed).
+
+## Events / Operations
+List all operations (e.g., Lock, Unlock, TryLock), each with:
+- name
+- parameters (if any)
+- purpose
+
+## Guards
+Conditions under which each operation is enabled.
+
+## Actions
+State updates performed by each operation.
+
+## Initialisation
+Initial values of all variables.
+
+## Invariants
+Safety properties that must always hold.
+
+## Assumptions
+Explicit assumptions or underspecified behavior.
+
+## Concurrency model
+Describe:
+- number of processes/threads
+- interaction style (shared state vs message passing)
+- scheduling assumptions (if any)
+
+## Other notes
+Any modeling constraints relevant for PAT (e.g., bounded queues, no arrays, etc.).
+
+Output only the documentation. No explanations."""
 
 
-STAGE2_SYSTEM_BASE = """You are a formal methods expert. Given a natural-language requirements documentation of a \
-system, output a single event-based CSP style (channel CSP) model as plain source text.
+CSP_OUTPUT = """You are a formal methods expert. Given natural-language requirements, generate a \
+CSP# (CSP Sharp) model compatible with PAT 3.
 
-Output rules:
-- Emit only model source that could be saved to a file and checked by PAT (process definitions, \
-#system, #alphabet, #endalphabet, etc. as appropriate for the documentation). No markdown fences, no explanation.
+STRICT SYNTAX RULES (MUST FOLLOW EXACTLY):
+- Use only CSP# syntax (NOT Event-B, NOT pseudocode)
+- Use C-style assignment: = (NEVER :=)
+- Use C-style operators: ==, !=, &&, !
+- Every state update MUST be inside: event { ... }
+- Every transition MUST be: event -> Process
+- Every process MUST be recursive (no -> Skip except Init)
+- Every guarded process MUST have TWO branches:
+    if (cond) { ... } -> P
+    [] if (!(cond)) { tau -> P }
+- NEVER use undefined functions (no f(x), parity(x), etc.)
+- Replace parity(x) with (x % 2)
+- Replace sets with integers
+- Do NOT use arrays unless explicitly required
+- Do NOT use mathematical symbols (∈, ∅, ≠, etc.)
 
-Refer to this sample CSP code of Alternating Bit Protocol as an example:
+STRUCTURE:
+1. #define constants
+2. var declarations (all initialized)
+3. Init() process
+4. One process per Event
+5. System() = Init(); (P1() ||| P2() ||| ...)
+6. #assert statements
 
-//=======================Model Details===========================
-#define CHANNELSIZE 1;
+OUTPUT:
+- Only valid PAT CSP# code
+- No explanations
+- No markdown
 
-channel c CHANNELSIZE; //unreliable channel.
-channel d CHANNELSIZE; //perfect channel.
-channel tmr 0; //a synchronous channel between sender and timer, which is used to implement premature timeout.
+Output only valid PAT CSP# source code.
 
-Sender(alterbit) = (c!alterbit -> Skip [] lost -> Skip);
-                                  tmr!1 -> Wait4Response(alterbit);
+Ensure:
+- No unreachable processes
+- No missing branches in guarded choices
+- No deadlocks unless explicitly required
+- Consistent naming with the requirements
 
-Wait4Response(alterbit) = (d?x -> ifa (x==alterbit) {
-                                      tmr!0 -> Sender(1-alterbit)
-                                  } else {
-                                      Wait4Response(alterbit)
-                                  })
-                          [] tmr?2 -> Sender(alterbit);
+Example features to include when relevant:
+- Lock/Unlock operations
+- Queue modeling (bounded if required)
+- Thread processes
+- Always include safety assertions (mutual exclusion, invariants)
+- `#assert System() deadlockfree;`
 
-Receiver(alterbit) = c?x -> ifa (x==alterbit) {
-                                 d!alterbit -> Receiver(1-alterbit)
-                            } else {
-                                 Receiver(alterbit)
-                            };
+Output only the model.
+"""
 
-Timer = tmr?1 -> (tmr?0 -> Timer [] tmr!2 -> Timer);
+VERIFY_CSP = """
+You are a CSP# (CSP Sharp) verification assistant for models intended to run in PAT 3.
 
-ABP = Sender(0) ||| Receiver(0) ||| Timer;
-
-#assert ABP deadlockfree;
-#assert ABP |= []<> lost;
+Your job is to analyze a given CSP# model and improve it, to make it:
+1. syntactically valid for PAT
+2. semantically well-formed (no obvious modeling errors)
+3. likely to pass basic verification (no trivial deadlocks, etc.)
 
 
+## Common Semantic Issues
+- non-recursive processes
+- deadlock-prone branches
+- missing guards
+- incorrect use of nondeterminism
+- unreachable code
+
+## Unsupported Constructs (illegal CSP# constructs):
+- :=, ∈, ∅, ≠
+- undefined functions (f(x), parity(x))
+- arrays used incorrectly
+
+## Concurrency Issues
+Check:
+- incorrect use of `[]` vs `|||`
+- sequential composition mistakes
+- missing interleaving
+
+## Assertion Issues
+Check:
+- invalid syntax inside #assert
+- always-true assertions
+- undefined symbols
+
+## Deadlock Risk
+
+--------------------------------
+STRICT RULES
+--------------------------------
+
+- Target language is CSP# for PAT (NOT pure CSP).
+- Be strict: even small syntax mistakes must be flagged.
+- Do NOT rewrite the whole model.
+- Do NOT invent new behavior.
+- Focus on correctness, not style.
+
+--------------------------------
+COMMON ERRORS TO CHECK
+--------------------------------
+
+1. Use of := instead of =
+2. Missing `{}` in event updates
+3. Missing `->` transitions
+4. Processes that terminate (`-> Skip`) instead of recurse
+5. `if` without fallback branch (`[]`)
+6. Undefined functions (parity, f, etc.)
+7. Event blocks without event names
+8. Sequential composition where parallel (`|||`) is required
+9. Guards using `=` instead of `==`
+10. Illegal symbols (∈, ∅, ≠)
+
+--------------------------------
+GOAL
+--------------------------------
+
+Your goal is to catch ALL issues that would cause:
+- PAT parse errors
+- immediate deadlocks
+- incorrect CSP# semantics
+
+--------------------------------
+OUTPUT
+--------------------------------
+Output ONLY the updated model, without comments or explanations. 
 """
 
 
 def stage1_system_message(input_kind: str) -> str:
-    return f"{STAGE1_SYSTEM_DEFAULT}\n\nThe input is labeled as: {input_kind}."
+    return f"{NATURAL_LANGUAGE_REQUIREMENTS}\n\nThe input is labeled as: {input_kind}."
 
 
 def stage2_system_message(config: Config) -> str:
-    parts = [STAGE2_SYSTEM_BASE]
-    if config.few_shot_system_addon:
-        parts.append("\n--- Reference patterns (follow style/conventions, adapt to this brief):\n")
-        parts.append(config.few_shot_system_addon)
+    return CSP_OUTPUT
+
+def stage3_system_message(csp_input: str,config: Config) -> str:
+    parts = [VERIFY_CSP]
+    parts.append(
+        "\n\n########### CSP# Input:):\n"
+    )
+    parts.append(csp_input)
+    parts.append(
+        "\n\n########### Additional reference CSP# examples (learn syntax and idioms; "
+        "output a model for the user's brief, do not copy these verbatim):\n"
+    )
+    parts.append(config.csp_examples_addon)
     return "".join(parts)
 
 
