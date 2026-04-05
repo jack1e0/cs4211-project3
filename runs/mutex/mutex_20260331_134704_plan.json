@@ -1,0 +1,97 @@
+{
+  "system_type": "rust",
+  "system_family": "mutex",
+  "system_name": "Mutex",
+  "constants": [
+    {
+      "name": "LOCK",
+      "value": "true",
+      "comment": "Mutex locked state"
+    },
+    {
+      "name": "AVAILABLE",
+      "value": "false",
+      "comment": "Mutex available state"
+    }
+  ],
+  "variables": [
+    {
+      "name": "lock",
+      "type": "bool",
+      "init": "false",
+      "range": "bool"
+    },
+    {
+      "name": "mutex_val",
+      "type": "T",
+      "init": "val",
+      "comment": "Underlying value protected by mutex"
+    },
+    {
+      "name": "wait_queue",
+      "type": "Queue",
+      "init": "new()",
+      "comment": "Queue for waiting processes"
+    }
+  ],
+  "processes": [
+    {
+      "name": "MutexProcess",
+      "role": "Actor",
+      "states_encoded_as": "lock",
+      "transitions": [
+        {
+          "label": "lock",
+          "guard": "[lock == available]",
+          "actions": [
+            "lock := true"
+          ],
+          "next_state": "wait_queueisempty"
+        },
+        {
+          "label": "try_lock",
+          "guard": "[lock == available]",
+          "actions": [
+            "lock := true"
+          ],
+          "next_state": "wait_queueisempty"
+        },
+        {
+          "label": "unlock",
+          "guard": "[lock == lock]",
+          "actions": [
+            "lock := false",
+            "wait_queue.wake_one()"
+          ],
+          "next_state": "AVAILABLE"
+        }
+      ]
+    }
+  ],
+  "composition": "MutexProcess()",
+  "assertions": [
+    {
+      "id": "A1",
+      "kind": "deadlockfree",
+      "description": "The system should not deadlock when accessing the mutex.",
+      "pat_snippet": "#assert System deadlockfree;"
+    },
+    {
+      "id": "A2",
+      "kind": "invariant",
+      "description": "The lock state follows the state machine behavior.",
+      "pat_snippet": "#assert System always (lock = available or wait_queueisempty)"
+    },
+    {
+      "id": "A3",
+      "kind": "LTL",
+      "description": "The system should eventually release the lock when requested.",
+      "pat_snippet": "#assert System ([] (release_request -|> unlock_eventually))"
+    }
+  ],
+  "translation_notes": [
+    "Wait queue implementation is abstracted in the model",
+    "Mutex state is encoded using the lock variable",
+    "Guard acquisition logic is simplified for the model"
+  ]
+}

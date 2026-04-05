@@ -1,0 +1,19 @@
+// MutexAcquirer definition
+MutexAcquirer() = [
+    when { LOCK == 0 } -> set LOCK = 1, enqueue current process into WAITQUEUE, transition to -> holder
+    when { LOCK == 1 } -> transition to -> holder
+]
+
+// MutexHolder definition
+MutexHolder() = [
+    when { LOCK == 1 } -> set LOCK = 0, transition to -> acquirer
+]
+
+// Add current thread to the wait queue
+ADD_CURRENT_THREAD() = insert_current_thread into WAITQUEUE
+
+// Remove the first thread from the wait queue
+REMOVE_FIRST() = extract_first_thread from WAITQUEUE
+
+// Mutex System composition
+MutexSystem() = MutexAcquirer() || MutexHolder()

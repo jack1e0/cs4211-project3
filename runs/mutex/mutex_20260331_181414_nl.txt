@@ -1,0 +1,15 @@
+// "INITIAL_LOCK_STATE": integer constant = 0, initial value of the lock  
+// "lock": int variable, initial value 0  
+// "wait_queue": array variable, initial value empty  
+
+// Definition of the "MutexAcquirer" process.  
+// if "lock" is "0", action "try_acquire" sets "lock" to "1".  
+// if "lock" is "1", action "wait" sets "wait_queue" to "add_current_thread".  
+
+// Definition of the "MutexHolder" process.  
+// if "lock" is "1", action "release" sets "lock" to "0" and "wait_queue" to "remove_first".  
+
+// MutexSystem = MutexAcquirer ||| MutexHolder  
+
+// #assert deadlock_free  
+// #assert "(wait_queue ≠ empty) → F(lock = 0)"

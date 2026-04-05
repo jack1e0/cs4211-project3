@@ -1,0 +1,184 @@
+{
+  "system_name": "MutexWithWaitQueue",
+  "system_type": "Rust",
+  "overall_description": "A synchronization primitive implementing a mutex with a wait queue, allowing threads to acquire, release, and wait for a lock while managing the queue of waiting threads.",
+  "interaction_mode": "parallel",
+  "constants": [
+    {
+      "name": "MAX_QUEUE_SIZE",
+      "value": 3
+    }
+  ],
+  "variables": [
+    {
+      "name": "lock",
+      "type": "AtomicBool",
+      "initial_value": false
+    },
+    {
+      "name": "qsize",
+      "type": "int",
+      "initial_value": 0
+    },
+    {
+      "name": "q0",
+      "type": "bool",
+      "initial_value": false
+    },
+    {
+      "name": "q1",
+      "type": "bool",
+      "initial_value": false
+    },
+    {
+      "name": "q2",
+      "type": "bool",
+      "initial_value": false
+    },
+    {
+      "name": "lock_held",
+      "type": "bool",
+      "initial_value": false
+    },
+    {
+      "name": "guard_live",
+      "type": "bool",
+      "initial_value": true
+    },
+    {
+      "name": "guard_count",
+      "type": "int",
+      "initial_value": 1
+    },
+    {
+      "name": "in_critical",
+      "type": "bool",
+      "initial_value": false
+    },
+    {
+      "name": "after_unlock",
+      "type": "bool",
+      "initial_value": false
+    },
+    {
+      "name": "acquire_in_prog",
+      "type": "bool",
+      "initial_value": false
+    },
+    {
+      "name": "acquire_succeeded",
+      "type": "bool",
+      "initial_value": false
+    },
+    {
+      "name": "unlock_called",
+      "type": "bool",
+      "initial_value": false
+    },
+    {
+      "name": "wake_called",
+      "type": "bool",
+      "initial_value": false
+    },
+    {
+      "name": "guard_dropped",
+      "type": "bool",
+      "initial_value": false
+    },
+    {
+      "name": "try_lock_result",
+      "type": "bool",
+      "initial_value": false
+    }
+  ],
+  "processes": [
+    {
+      "name": "MutexProcess",
+      "description": "Manages the lock and wait queue state for the mutex.",
+      "actions": [
+        {
+          "action_name": "acquire_lock",
+          "conditions": {
+            "lock": "false"
+          },
+          "state_changes": {
+            "lock": "true",
+            "lock_held": "true"
+          }
+        },
+        {
+          "action_name": "release_lock",
+          "conditions": {
+            "lock": "true"
+          },
+          "state_changes": {
+            "lock": "false",
+            "lock_held": "false",
+            "after_unlock": "true"
+          }
+        },
+        {
+          "action_name": "wake_one",
+          "conditions": {
+            "qsize": ">=1"
+          },
+          "state_changes": {
+            "qsize": "qsize - 1"
+          }
+        }
+      ]
+    },
+    {
+      "name": "ThreadProcess",
+      "description": "A thread attempting to acquire the mutex and release it once done.",
+      "actions": [
+        {
+          "action_name": "try_lock",
+          "conditions": {
+            "lock": "false"
+          },
+          "state_changes": {
+            "acquire_succeeded": "true"
+          }
+        },
+        {
+          "action_name": "wait_for_lock",
+          "conditions": {
+            "lock": "true"
+          },
+          "state_changes": {
+            "qsize": "qsize + 1"
+          }
+        },
+        {
+          "action_name": "unlock",
+          "conditions": {
+            "lock": "true"
+          },
+          "state_changes": {
+            "unlock_called": "true"
+          }
+        },
+        {
+          "action_name": "drop_guard",
+          "conditions": {
+            "guard_live": "true"
+          },
+          "state_changes": {
+            "guard_live": "false",
+            "guard_count": "guard_count - 1",
+            "guard_dropped": "true"
+          }
+        }
+      ]
+    }
+  ],
+  "system_composition": "Thread(1) ||| Thread(2) ||| Thread(3) ||| Mutex(1)",
+  "translation_notes": [
+    "The WaitQueue is explicitly modeled with q0, q1, q2 (representing slots) and qsize (number of waiting threads). This aligns with the note to avoid assuming internal implementation details.",
+    "The 'lock_held' flag is derived from the 'lock' variable to track the mutex state for assertions.",
+    "The 'acquire_in_prog', 'acquire_succeeded', and 'try_lock_result' variables are used to capture the state of lock acquisition attempts for verification.",
+    "The 'guard_live' and 'guard_count' variables track the number of active guards to detect race conditions or leaks.",
+    "The 'guard_dropped' flag is triggered when a MutexGuard is dropped, which in the code triggers an implicit unlock via the Drop trait."
+  ]
+}

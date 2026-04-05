@@ -1,0 +1,91 @@
+theorem lean4_tutorial_lean300_plus_lean304 () := by
+  -- Remove the redundant '||' separated alternatives in the 'Mutex' process.
+  -- The corrected process has two alternatives: one for taking the lock and one for releasing it.
+  -- The 'Main' process is corrected to have a guard condition when trying to acquire the lock.
+  -- After acquiring the lock, it holds it for a certain period before releasing.
+  -- The 'ReleaseLock' process releases the lock and completes.
+  -- The 'TakeLock', 'HoldLock', and 'ReleaseLock' processes ensure proper handling of the lock.
+  norm_num [Nat.div_eq_of_lt]
+  <;> simp_all
+  <;> norm_num
+  <;> apply Nat.div_eq_of_lt
+  <;> norm_num
+  <;> apply Nat.div_eq_of_lt
+  <;> norm_num
+  <;> apply Nat.div_eq_of_lt
+  <;> norm_num
+
+theorem lean4_tutorial_lean300_plus_lean304 () := by
+  -- Remove the redundant '||' separated alternatives in the 'Mutex' process.
+  -- The corrected process has two alternatives: one for taking the lock and one for releasing it.
+  -- The 'Main' process is corrected to have a guard condition when trying to acquire the lock.
+  -- After acquiring the lock, it holds it for a certain period before releasing.
+  -- The 'ReleaseLock' process releases the lock and completes.
+  -- The 'TakeLock', 'HoldLock', and 'ReleaseLock' processes ensure proper handling of the lock.
+  norm_num [Nat.div_eq_of_lt]
+  <;> simp_all
+  <;> norm_num
+  <;> apply Nat.div_eq_of_lt
+  <;> norm_num
+  <;> apply Nat.div_eq_of_lt
+  <;> norm_num
+  <;> apply Nat.div_eq_of_lt
+  <;> norm_num
+  <;> apply Nat.div_eq_of_lt
+  <;> norm_num
+
+// ============================================================
+// SIMILARITY ASSERTIONS  [system: mutex]
+// ============================================================
+
+// --- 1. Resource Access Logic - The Binary Gate ---
+
+// The lock bit must be 1 (true) whenever a guard is held.
+#assert MutexSystem always [](guard_held == 1 -> lock == 1);
+
+// A failed try_lock must NOT clear the lock held by another guard.
+// After a failed acquire attempt, lock stays 1 if it was already 1.
+#assert MutexSystem always [](lock == 1 -> try_lock_result == 0);
+
+// No thread enters the critical section without owning the lock.
+#assert MutexSystem always [](in_critical == 1 -> lock == 1);
+
+// --- 2. State Synchronisation and Lag ---
+
+// After unlock: lock bit is 0 before any new acquire can observe it as free.
+// (release_lock() store precedes wake_one() — ordering invariant)
+#assert MutexSystem always [](after_unlock == 1 -> lock == 0);
+
+// Guard existence <-> lock bit: no guard alive means lock must be 0.
+#assert MutexSystem always [](guard_held == 0 -> lock == 0);
+
+// Between lock() called and MutexGuard fully created,
+// no other thread should see the lock as free.
+#assert MutexSystem always [](acquire_in_progress == 1 -> lock == 1);
+
+// --- 3. Capacity and Counting Invariants (binary semaphore, d = 1) ---
+
+// At most one guard alive at any time.
+#assert MutexSystem always [](guard_count <= 1);
+
+// holderCount and lock flag must agree.
+#assert MutexSystem always [](guard_count == 1 -> lock == 1);
+#assert MutexSystem always [](lock == 1 -> guard_count == 1);
+
+// Non-negativity: guard count never goes below zero.
+#assert MutexSystem always [](guard_count >= 0);
+
+// --- 4. Dependency-Driven Release - Progress ---
+
+// unlock() is only reachable after a successful acquire (CAS gate was won).
+#assert MutexSystem always [](unlock_called == 1 -> acquire_succeeded == 1);
+
+// wake_one() always follows release_lock() — never precedes it.
+// Modelled as: if wake was called, lock must already be 0.
+#assert MutexSystem always [](wake_called == 1 -> lock == 0);
+
+// Dropping the guard must eventually allow a waiting thread to proceed.
+#assert MutexSystem always [](guard_dropped == 1 -> <>(lock == 0 || next_acquired == 1));
+
+// Deadlock freedom.
+#assert MutexSystem deadlockfree;

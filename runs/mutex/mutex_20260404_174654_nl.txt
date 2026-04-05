@@ -1,0 +1,42 @@
+// Constants and variables  
+// "MAX_QUEUE_SIZE": integer constant = 3, maximum queue size  
+// "lock": AtomicBool variable, initial value false  
+// "qsize": int variable, initial value 0  
+// "q0": bool variable, initial value false  
+// "q1": bool variable, initial value false  
+// "q2": bool variable, initial value false  
+// "lock_held": bool variable, initial value false  
+// "guard_live": bool variable, initial value true  
+// "guard_count": int variable, initial value 1  
+// "in_critical": bool variable, initial value false  
+// "after_unlock": bool variable, initial value false  
+// "acquire_in_prog": bool variable, initial value false  
+// "acquire_succeeded": bool variable, initial value false  
+// "unlock_called": bool variable, initial value false  
+// "wake_called": bool variable, initial value false  
+// "guard_dropped": bool variable, initial value false  
+// "try_lock_result": bool variable, initial value false  
+
+// Processes  
+// Definition of the "MutexProcess" process (for the mutex)  
+// if "lock" is false, action "acquire_lock" sets "lock"=true, "lock_held"=true  
+// if "lock" is true, action "release_lock" sets "lock"=false, "lock_held"=false, "after_unlock"=true  
+// if "qsize" >= 1, action "wake_one" sets "qsize"=qsize-1  
+
+// Definition of the "ThreadProcess" process (for thread t)  
+// if "lock" is false, action "try_lock" sets "acquire_succeeded"=true  
+// if "lock" is true, action "wait_for_lock" sets "qsize"=qsize+1  
+// if "lock" is true, action "unlock" sets "unlock_called"=true  
+// if "guard_live" is true, action "drop_guard" sets "guard_live"=false, "guard_count"=guard_count-1, "guard_dropped"=true  
+
+// Queue/auxiliary sub-processes  
+// Enqueue(t): if qsize == 0, set q0 = t, qsize = 1  
+//            if qsize == 1, set q1 = t, qsize = 2  
+//            if qsize == 2, set q2 = t, qsize = 3  
+// DequeueHead: if qsize >=1, qsize = qsize-1  
+//            if qsize == 3, set q2 = false  
+//            if qsize == 2, set q1 = false  
+//            if qsize == 1, set q0 = false  
+
+// System composition  
+// System(): MutexProcess ||| ThreadProcess(1) ||| ThreadProcess(2) ||| ThreadProcess(3)

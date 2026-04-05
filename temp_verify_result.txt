@@ -1,0 +1,338 @@
+=======================================================
+Assertion: System() reaches guard_implies_lock
+********Verification Result********
+The Assertion (System() reaches guard_implies_lock) is VALID.
+The following trace leads to a state where the condition is satisfied.
+<init>
+
+********Verification Setting********
+Admissible Behavior: All
+Search Engine: First Witness Trace using Depth First Search
+System Abstraction: False
+
+
+********Verification Statistics********
+Visited States:1
+Total Transitions:0
+Time Used:0.0089049s
+Estimated Memory Used:8529.848KB
+
+
+=======================================================
+Assertion: System() reaches try_fail_no_unlock
+********Verification Result********
+The Assertion (System() reaches try_fail_no_unlock) is VALID.
+The following trace leads to a state where the condition is satisfied.
+<init>
+
+********Verification Setting********
+Admissible Behavior: All
+Search Engine: First Witness Trace using Depth First Search
+System Abstraction: False
+
+
+********Verification Statistics********
+Visited States:1
+Total Transitions:0
+Time Used:0.0007094s
+Estimated Memory Used:8528KB
+
+
+=======================================================
+Assertion: System() reaches cs1_needs_lock
+********Verification Result********
+The Assertion (System() reaches cs1_needs_lock) is VALID.
+The following trace leads to a state where the condition is satisfied.
+<init>
+
+********Verification Setting********
+Admissible Behavior: All
+Search Engine: First Witness Trace using Depth First Search
+System Abstraction: False
+
+
+********Verification Statistics********
+Visited States:1
+Total Transitions:0
+Time Used:0.0001592s
+Estimated Memory Used:8528KB
+
+
+=======================================================
+Assertion: System() reaches cs2_needs_lock
+********Verification Result********
+The Assertion (System() reaches cs2_needs_lock) is VALID.
+The following trace leads to a state where the condition is satisfied.
+<init>
+
+********Verification Setting********
+Admissible Behavior: All
+Search Engine: First Witness Trace using Depth First Search
+System Abstraction: False
+
+
+********Verification Statistics********
+Visited States:1
+Total Transitions:0
+Time Used:6.61E-05s
+Estimated Memory Used:8528KB
+
+
+=======================================================
+Assertion: System() reaches cs3_needs_lock
+********Verification Result********
+The Assertion (System() reaches cs3_needs_lock) is VALID.
+The following trace leads to a state where the condition is satisfied.
+<init>
+
+********Verification Setting********
+Admissible Behavior: All
+Search Engine: First Witness Trace using Depth First Search
+System Abstraction: False
+
+
+********Verification Statistics********
+Visited States:1
+Total Transitions:0
+Time Used:4.36E-05s
+Estimated Memory Used:8528KB
+
+
+=======================================================
+Assertion: System() reaches after_unlock_lock_clear
+********Verification Result********
+The Assertion (System() reaches after_unlock_lock_clear) is VALID.
+The following trace leads to a state where the condition is satisfied.
+<init>
+
+********Verification Setting********
+Admissible Behavior: All
+Search Engine: First Witness Trace using Depth First Search
+System Abstraction: False
+
+
+********Verification Statistics********
+Visited States:1
+Total Transitions:0
+Time Used:4.84E-05s
+Estimated Memory Used:8528KB
+
+
+=======================================================
+Assertion: System() reaches no_guard_no_lock
+********Verification Result********
+The Assertion (System() reaches no_guard_no_lock) is VALID.
+The following trace leads to a state where the condition is satisfied.
+<init>
+
+********Verification Setting********
+Admissible Behavior: All
+Search Engine: First Witness Trace using Depth First Search
+System Abstraction: False
+
+
+********Verification Statistics********
+Visited States:1
+Total Transitions:0
+Time Used:4.75E-05s
+Estimated Memory Used:8528KB
+
+
+=======================================================
+Assertion: System() reaches acq_prog_lock_held
+********Verification Result********
+The Assertion (System() reaches acq_prog_lock_held) is VALID.
+The following trace leads to a state where the condition is satisfied.
+<init>
+
+********Verification Setting********
+Admissible Behavior: All
+Search Engine: First Witness Trace using Depth First Search
+System Abstraction: False
+
+
+********Verification Statistics********
+Visited States:1
+Total Transitions:0
+Time Used:3.47E-05s
+Estimated Memory Used:8528KB
+
+
+=======================================================
+Assertion: System() reaches at_most_one_guard
+********Verification Result********
+The Assertion (System() reaches at_most_one_guard) is VALID.
+The following trace leads to a state where the condition is satisfied.
+<init>
+
+********Verification Setting********
+Admissible Behavior: All
+Search Engine: First Witness Trace using Depth First Search
+System Abstraction: False
+
+
+********Verification Statistics********
+Visited States:1
+Total Transitions:0
+Time Used:0.0001147s
+Estimated Memory Used:8528KB
+
+
+=======================================================
+Assertion: System() reaches guard_lock_fwd
+********Verification Result********
+The Assertion (System() reaches guard_lock_fwd) is VALID.
+The following trace leads to a state where the condition is satisfied.
+<init>
+
+********Verification Setting********
+Admissible Behavior: All
+Search Engine: First Witness Trace using Depth First Search
+System Abstraction: False
+
+
+********Verification Statistics********
+Visited States:1
+Total Transitions:0
+Time Used:6.5E-05s
+Estimated Memory Used:8528KB
+
+
+=======================================================
+Assertion: System() reaches guard_lock_bwd
+********Verification Result********
+The Assertion (System() reaches guard_lock_bwd) is VALID.
+The following trace leads to a state where the condition is satisfied.
+<init>
+
+********Verification Setting********
+Admissible Behavior: All
+Search Engine: First Witness Trace using Depth First Search
+System Abstraction: False
+
+
+********Verification Statistics********
+Visited States:1
+Total Transitions:0
+Time Used:3.52E-05s
+Estimated Memory Used:8528KB
+
+
+=======================================================
+Assertion: System() reaches guard_nonneg
+********Verification Result********
+The Assertion (System() reaches guard_nonneg) is VALID.
+The following trace leads to a state where the condition is satisfied.
+<init>
+
+********Verification Setting********
+Admissible Behavior: All
+Search Engine: First Witness Trace using Depth First Search
+System Abstraction: False
+
+
+********Verification Statistics********
+Visited States:1
+Total Transitions:0
+Time Used:0.0001132s
+Estimated Memory Used:8528KB
+
+
+=======================================================
+Assertion: System() reaches unlock_after_acquire
+********Verification Result********
+The Assertion (System() reaches unlock_after_acquire) is VALID.
+The following trace leads to a state where the condition is satisfied.
+<init>
+
+********Verification Setting********
+Admissible Behavior: All
+Search Engine: First Witness Trace using Depth First Search
+System Abstraction: False
+
+
+********Verification Statistics********
+Visited States:1
+Total Transitions:0
+Time Used:6.2E-05s
+Estimated Memory Used:8528KB
+
+
+=======================================================
+Assertion: System() reaches wake_after_release
+********Verification Result********
+The Assertion (System() reaches wake_after_release) is VALID.
+The following trace leads to a state where the condition is satisfied.
+<init>
+
+********Verification Setting********
+Admissible Behavior: All
+Search Engine: First Witness Trace using Depth First Search
+System Abstraction: False
+
+
+********Verification Statistics********
+Visited States:1
+Total Transitions:0
+Time Used:3.7E-05s
+Estimated Memory Used:8528KB
+
+
+=======================================================
+Assertion: System() reaches drop_allows_progress
+********Verification Result********
+The Assertion (System() reaches drop_allows_progress) is VALID.
+The following trace leads to a state where the condition is satisfied.
+<init>
+
+********Verification Setting********
+Admissible Behavior: All
+Search Engine: First Witness Trace using Depth First Search
+System Abstraction: False
+
+
+********Verification Statistics********
+Visited States:1
+Total Transitions:0
+Time Used:3.34E-05s
+Estimated Memory Used:8528KB
+
+
+=======================================================
+Assertion: System() reaches mutex_exclusive
+********Verification Result********
+The Assertion (System() reaches mutex_exclusive) is VALID.
+The following trace leads to a state where the condition is satisfied.
+<init>
+
+********Verification Setting********
+Admissible Behavior: All
+Search Engine: First Witness Trace using Depth First Search
+System Abstraction: False
+
+
+********Verification Statistics********
+Visited States:1
+Total Transitions:0
+Time Used:0.0003477s
+Estimated Memory Used:8528KB
+
+
+=======================================================
+Assertion: System() deadlockfree
+********Verification Result********
+The Assertion (System() deadlockfree) is VALID.
+
+********Verification Setting********
+Admissible Behavior: All
+Search Engine: First Witness Trace using Depth First Search
+System Abstraction: False
+
+
+********Verification Statistics********
+Visited States:17
+Total Transitions:31
+Time Used:0.0171974s
+Estimated Memory Used:8528.376KB
+
+

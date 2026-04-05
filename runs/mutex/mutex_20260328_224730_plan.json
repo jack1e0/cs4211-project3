@@ -1,0 +1,119 @@
+{
+  "system_type": "rust",
+  "system_name": "Mutex",
+  "constants": [
+    {
+      "name": "TRUE",
+      "value": "true",
+      "comment": "Represents true condition in PAT"
+    },
+    {
+      "name": "FALSE",
+      "value": "false",
+      "comment": "Represents false condition in PAT"
+    },
+    {
+      "name": "NULL",
+      "value": "null",
+      "comment": "Represents null value in PAT"
+    }
+  ],
+  "variables": [
+    {
+      "name": "lock",
+      "type": "bool",
+      "init": "FALSE",
+      "comment": "Mutex lock state"
+    },
+    {
+      "name": "queue",
+      "type": "enum",
+      "init": "WAITING",
+      "comment": "Mutex wait queue state"
+    },
+    {
+      "name": "thread_state",
+      "type": "enum",
+      "init": "RUNNING",
+      "comment": "Thread execution state"
+    }
+  ],
+  "processes": [
+    {
+      "name": "Mutex",
+      "role": "Actor",
+      "states_encoded_as": "lock",
+      "transitions": [
+        {
+          "label": "acquire_lock",
+          "guard": "[lock == FALSE]",
+          "actions": [
+            "lock := TRUE"
+          ],
+          "next_state": "LOCKED"
+        },
+        {
+          "label": "release_lock",
+          "guard": "[lock == TRUE]",
+          "actions": [
+            "lock := FALSE",
+            "queue.wake_one()"
+          ],
+          "next_state": "UNLOCKED"
+        }
+      ]
+    },
+    {
+      "name": "Thread",
+      "role": "Actor",
+      "states_encoded_as": "thread_state",
+      "transitions": [
+        {
+          "label": "try_lock",
+          "guard": "[lock == FALSE]",
+          "actions": [
+            "lock := TRUE"
+          ],
+          "next_state": "HOLDING"
+        },
+        {
+          "label": "wait_for_lock",
+          "guard": "[lock == TRUE]",
+          "actions": [
+            "queue.add_to_queue()"
+          ],
+          "next_state": "WAITING"
+        },
+        {
+          "label": "resume",
+          "guard": "[queue.most_recent()]",
+          "actions": [
+            "queue.remove_from_queue()"
+          ],
+          "next_state": "RUNNING"
+        }
+      ]
+    }
+  ],
+  "composition": "Mutex() || Thread1() || Thread2() || ...",
+  "assertions": [
+    {
+      "id": "A1",
+      "kind": "deadlockfree",
+      "description": "No deadlock in the system",
+      "pat_snippet": "#assert System deadlockfree;"
+    },
+    {
+      "id": "A2",
+      "kind": "invariant",
+      "description": "Lock state consistency",
+      "pat_snippet": "#assert (<>[lock == TRUE] -> eventually [lock == FALSE])"
+    }
+  ],
+  "translation_notes": [
+    "Mutex lock and unlock operations are modeled with guards to enforce mutual exclusion",
+    "Thread processes represent concurrent access attempts to the mutex",
+    "Queue management is handled through transitions when threads wait and are resumed",
+    "The actual number of threads should be specified in the composition"
+  ]
+}

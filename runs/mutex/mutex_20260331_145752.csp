@@ -1,0 +1,84 @@
+atomic { lock = 1 } -> P(releaseLock)
+atomic { queue = queue + [current_process] } -> P(waitForTurn)
+atomic { lock = 0 } -> P(releaseQueue)
+atomic { queue = [] } -> P()
+
+process releaseLock {
+    true -> atomic { lock = 0 } -> releaseQueue()
+}
+
+process waitForTurn {
+    true -> waitUntil current_process == queue[0] -> acquireLock()
+}
+
+process releaseQueue {
+    true -> atomic { queue = queue - [current_process] } -> P()
+}
+
+process acquireLock {
+    true -> atomic { lock = 1 } -> P()
+}
+
+// ============================================================
+// SIMILARITY ASSERTIONS  [system: mutex]
+// ============================================================
+
+// --- 1. Resource Access Logic - The Binary Gate ---
+
+// Guard held => lock bit is 1
+#assert MutexSystem always
+  [](guard_held == 1 -> lock == 1);
+
+// Failed try_lock must not clear a held lock
+#assert MutexSystem always
+  [](lock == 1 -> try_lock_result == 0);
+
+// Critical section requires lock ownership
+#assert MutexSystem always
+  [](in_critical == 1 -> lock == 1);
+
+// --- 2. State Synchronisation and Lag ---
+
+// After unlock: lock is 0 before next acquire sees it free
+#assert MutexSystem always
+  [](after_unlock == 1 -> lock == 0);
+
+// No guard alive => lock must be 0
+#assert MutexSystem always
+  [](guard_held == 0 -> lock == 0);
+
+// Acquire in progress => lock is already 1
+#assert MutexSystem always
+  [](acquire_in_progress == 1 -> lock == 1);
+
+// --- 3. Capacity and Counting Invariants (binary semaphore, d=1) ---
+
+// At most one guard at any time
+#assert MutexSystem always
+  [](guard_count <= 1);
+
+// guard_count and lock bit agree
+#assert MutexSystem always
+  [](guard_count == 1 -> lock == 1);
+#assert MutexSystem always
+  [](lock == 1 -> guard_count == 1);
+
+// Non-negativity
+#assert MutexSystem always
+  [](guard_count >= 0);
+
+// --- 4. Dependency-Driven Release ---
+
+// unlock() reachable only after successful acquire
+#assert MutexSystem always
+  [](unlock_called == 1 -> acquire_succeeded == 1);
+
+// wake_one() always after release_lock()
+#assert MutexSystem always
+  [](wake_called == 1 -> lock == 0);
+
+// Dropping guard eventually allows progress
+#assert MutexSystem always
+  [](guard_dropped == 1 -> <>(lock == 0 || next_acquired == 1));
+
+#assert MutexSystem deadlockfree;

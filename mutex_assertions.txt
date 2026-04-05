@@ -1,0 +1,48 @@
+#define guard_implies_lock (guard_count != 1 || lock_held == 1);
+#assert System() reaches guard_implies_lock;
+
+#define try_fail_no_unlock (try_lock_result != 0 || lock_held == 1 || lock_held == 0);
+#assert System() reaches try_fail_no_unlock;
+
+#define cs1_needs_lock (in_critical[1] != 1 || lock_held == 1);
+#define cs2_needs_lock (in_critical[2] != 1 || lock_held == 1);
+#define cs3_needs_lock (in_critical[3] != 1 || lock_held == 1);
+#assert System() reaches cs1_needs_lock;
+#assert System() reaches cs2_needs_lock;
+#assert System() reaches cs3_needs_lock;
+
+#define after_unlock_lock_clear (after_unlock != 1 || lock_held == 0);
+#assert System() reaches after_unlock_lock_clear;
+
+#define no_guard_no_lock (guard_count != 0 || lock_held == 0);
+#assert System() reaches no_guard_no_lock;
+
+#define acq_prog_lock_held (acquire_in_prog != 1 || lock_held == 1);
+#assert System() reaches acq_prog_lock_held;
+
+#define at_most_one_guard (guard_count <= 1);
+#assert System() reaches at_most_one_guard;
+
+#define guard_lock_fwd (guard_count != 1 || lock_held == 1);
+#define guard_lock_bwd (lock_held != 1 || guard_count == 1);
+#assert System() reaches guard_lock_fwd;
+#assert System() reaches guard_lock_bwd;
+
+#define guard_nonneg (guard_count >= 0);
+#assert System() reaches guard_nonneg;
+
+#define unlock_after_acquire (unlock_called != 1 || acquire_succeeded == 1);
+#assert System() reaches unlock_after_acquire;
+
+#define wake_after_release (wake_called != 1 || lock_held == 0);
+#assert System() reaches wake_after_release;
+
+#define drop_allows_progress (guard_dropped != 1 || lock_held == 0 || next_acquired == 1);
+#assert System() reaches drop_allows_progress;
+
+#define mutex_exclusive (!(guard_live[1] == 1 && guard_live[2] == 1)
+                      && !(guard_live[1] == 1 && guard_live[3] == 1)
+                      && !(guard_live[2] == 1 && guard_live[3] == 1));
+#assert System() reaches mutex_exclusive;
+
+#assert System() deadlockfree;

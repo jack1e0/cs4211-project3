@@ -1,0 +1,88 @@
+{
+  "system_type": "rust",
+  "system_name": "MutexSystem",
+  "overall_description": "A mutex implementation with a wait queue that allows threads to block until the mutex becomes available. Provides try-lock and lock operations, with proper unlocking when guards are dropped.",
+  "interaction_mode": "parallel",
+  "constants": [
+    {
+      "name": "INITIAL_LOCK_STATE",
+      "value": "0",
+      "description": "Initial value of the lock (false) represented as integer"
+    }
+  ],
+  "variables": [
+    {
+      "name": "lock",
+      "type": "int",
+      "possible_values": "0, 1",
+      "initial_value": "0",
+      "description": "Atomic boolean representing mutex lock state (0 = unlocked, 1 = locked)"
+    },
+    {
+      "name": "wait_queue",
+      "type": "array",
+      "possible_values": "empty, [thread1], [thread2], [thread1, thread2]",
+      "initial_value": "empty",
+      "description": "Queue of waiting threads blocked on this mutex"
+    }
+  ],
+  "processes": [
+    {
+      "name": "MutexAcquirer",
+      "description": "Thread attempting to acquire the mutex",
+      "actions": [
+        {
+          "action_name": "try_acquire",
+          "conditions": {
+            "lock": "0"
+          },
+          "state_changes": {
+            "lock": "1"
+          }
+        },
+        {
+          "action_name": "wait",
+          "conditions": {
+            "lock": "1"
+          },
+          "state_changes": {
+            "wait_queue": "add_current_thread"
+          }
+        }
+      ]
+    },
+    {
+      "name": "MutexHolder",
+      "description": "Thread holding the mutex",
+      "actions": [
+        {
+          "action_name": "release",
+          "conditions": {
+            "lock": "1"
+          },
+          "state_changes": {
+            "lock": "0",
+            "wait_queue": "remove_first"
+          }
+        }
+      ]
+    }
+  ],
+  "assertions": [
+    {
+      "assertionType": "deadlock-free",
+      "description": "Ensures a waiting thread will eventually acquire the lock",
+      "pat_snippet": "#assert deadlock_free"
+    },
+    {
+      "assertionType": "ltl",
+      "description": "Guarantees that if a thread is waiting, the lock will eventually be released",
+      "pat_snippet": "#assert \"(wait_queue \u2260 empty) \u2192 F(lock = 0)\""
+    }
+  ],
+  "translation_notes": [
+    "WaitQueue's internal state is abstracted as an array of threads",
+    "MutexGuard's drop implementation is modeled as implicit release action",
+    "AtomicBool's compare_exchange is simplified to boolean state transitions"
+  ]
+}

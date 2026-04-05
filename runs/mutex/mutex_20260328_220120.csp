@@ -1,0 +1,37 @@
+var MAX_QUEUE_SIZE = 10;
+var lock = 0; // 0 = unlocked, 1 = locked
+var queue = 0; // 0 = empty, 1 = waiting processes
+var val = 0; // placeholder for protected data
+
+// mutex process
+Mutex() = 
+    [!lock] acquire -> 
+        lock = 1;
+        next = locked()
+    ||
+    [lock == 1] release ->
+        lock = 0;
+        wake_one();
+        next = unlocked()
+;
+
+// lock attempt process
+LockAttempt() = 
+    [!lock] attempt_lock ->
+        lock = 1;
+        next = locked()
+    ||
+    [lock == 1] enqueue(self) ->
+        next = waiting()
+    ||
+    [self is next in queue] wake_up ->
+        dequeue(next_process);
+        next_process.wake();
+        next = none()
+;
+
+System = Mutex() || LockAttempt();
+
+#assert A1 System deadlockfree;
+#assert A2 (lock = 0) || (lock = 1);
+#assert A3 System satisfies [][[]] deadlockfree;

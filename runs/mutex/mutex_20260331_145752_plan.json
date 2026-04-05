@@ -1,0 +1,90 @@
+{
+  "system_type": "rust",
+  "system_family": "mutex",
+  "system_name": "Mutex",
+  "constants": [
+    {
+      "name": "T",
+      "value": "Rust type T",
+      "comment": "The type of data protected by the mutex"
+    }
+  ],
+  "variables": [
+    {
+      "name": "lock",
+      "type": "int",
+      "init": "0",
+      "range": "[0,1]"
+    },
+    {
+      "name": "val",
+      "type": "UnsafeCell<T>",
+      "init": "UnsafeCell::new(val)",
+      "range": "N/A"
+    },
+    {
+      "name": "queue",
+      "type": "WaitQueue",
+      "init": "new",
+      "range": "N/A"
+    }
+  ],
+  "processes": [
+    {
+      "name": "MutexProcess",
+      "role": "Resource",
+      "states_encoded_as": "lock",
+      "transitions": [
+        {
+          "label": "acquire",
+          "guard": "[lock == 0]",
+          "actions": [
+            "lock = 1"
+          ],
+          "next_state": "locked"
+        },
+        {
+          "label": "release",
+          "guard": "[lock == 1]",
+          "actions": [
+            "lock = 0",
+            "queue.wake_one()"
+          ],
+          "next_state": "unlocked"
+        }
+      ]
+    }
+  ],
+  "composition": "MutexProcess()",
+  "assertions": [
+    {
+      "id": "A1",
+      "kind": "deadlockfree",
+      "description": "System is deadlock-free",
+      "pat_snippet": "#assert System deadlockfree;"
+    },
+    {
+      "id": "A2",
+      "kind": "reaches",
+      "description": "System reaches terminal state",
+      "pat_snippet": "#assert System reaches locked;"
+    },
+    {
+      "id": "A3",
+      "kind": "invariant",
+      "description": "Mutex is never acquired more than once",
+      "pat_snippet": "#assert System always [lock <= 1];"
+    },
+    {
+      "id": "A4",
+      "kind": "LTL",
+      "description": "No thread starves waiting for the lock",
+      "pat_snippet": "#assert System (<>release) R (<>acquire)"
+    }
+  ],
+  "translation_notes": [
+    "Assumed an underlying FIFO WaitQueue implementation for simplicity",
+    "Treated Arc<Mutex> as a simplified version of the main Mutex process",
+    "Omitted implementation details of MutexGuard due to complexity"
+  ]
+}

@@ -1,0 +1,141 @@
+var lock = 0;
+var queue = 0;
+var thread_state = 0;
+
+Mutex() = 
+    [lock == 0] acquire_lock -> 
+        atomic { lock = 1; } -> 
+        LOCKED()
+    ;
+    
+    [lock == 1] release_lock -> 
+        atomic { lock = 0; } -> 
+        UNLOCKED()
+    ;
+;
+
+Thread() = 
+    [lock == 0] try_lock -> 
+        atomic { lock = 1; } -> 
+        HOLDING()
+    ;
+    
+    [lock == 1] wait_for_lock -> 
+        atomic { queue = queue + 1; } -> 
+        WAITING()
+    ;
+    
+    [queue > 0] resume -> 
+        atomic { queue = queue - 1; } -> 
+        RUNNING()
+    ;
+;
+
+HOLDING() = 
+    [lock == 1] -> 
+       .Mutex()
+;
+
+WAITING() = 
+    [] -> 
+       .Thread()
+;
+
+LOCKED() = 
+    [lock == 1] -> 
+       .Mutex()
+;
+
+UNLOCKED() = 
+    [lock == 0] -> 
+       .Mutex()
+;
+
+RUNNING() = 
+    [queue > 0] -> 
+       .Thread()
+;
+
+// ============================================================
+// SIMILARITY ASSERTIONS
+// ============================================================
+
+// --- 1. Resource Access Logic - The Binary Gate ---
+
+// Car system - bridge semaphore
+// token = 1 means light is green (bridge free)
+#assert BridgeSystem reaches BridgeOccupied
+  with token == 1;        // gate must be held before entry
+
+// mutual exclusion: at most one car on the bridge
+#assert BridgeSystem always
+  [](onBridge <= 1);
+
+// Mutex - AtomicBool semaphore
+// lock flag must be false before a thread may acquire
+#assert MutexSystem always
+  [](locked == true -> holderCount == 1);
+
+// no thread enters critical section without owning the lock
+#assert MutexSystem always
+  [](inCritical -> locked == true);
+
+// --- 2. State Synchronisation and Lag ---
+
+// Car system - commit flag
+// flag$10$ must be cleared before car is counted as "gone"
+#assert BridgeSystem always
+  [](carPassed == true -> !inTransit);
+
+// no state update until the Commit event fires
+#assert BridgeSystem reaches Committed;
+
+// Mutex - guard creation phase
+// between lock() called and MutexGuard created,
+// no other thread should see the lock as free
+#assert MutexSystem always
+  [](acquireInProgress -> locked == true);
+
+// guard must exist before thread proceeds past lock()
+#assert MutexSystem always
+  [](threadRunning -> guardCreated);
+
+// --- 3. Capacity and Counting Invariants ---
+
+// Car system - bridge capacity d
+// A, B, C = cars in each zone; d = max bridge capacity
+#assert BridgeSystem always
+  [](carsInA + carsInB + carsInC <= d);
+
+// each zone count is non-negative
+#assert BridgeSystem always
+  [](carsInA >= 0 && carsInB >= 0 && carsInC >= 0);
+
+// Mutex / SpinLock - binary capacity (d = 1)
+// holderCount is the "in-flight" entity counter; max = 1
+#assert MutexSystem always
+  [](holderCount <= 1);
+
+// holderCount and lock flag must agree
+#assert MutexSystem always
+  [](holderCount == 1 <-> locked == true);
+
+// --- 4. Dependency-Driven Release - Progress ---
+
+// Car system - exit B enables mainland green
+// if a car exits B, eventually the mainland gets green
+#assert BridgeSystem always
+  [](exitB -> <> mainlandGreen);
+
+// no car may enter A unless the exit event has fired
+#assert BridgeSystem always
+  [](enterA -> exitBFired);
+
+// Mutex - drop(guard) triggers wake_one()
+// dropping the guard must eventually wake a waiter
+#assert MutexSystem always
+  [](guardDropped -> <> (locked == false || nextAcquired));
+
+// no thread acquires without a prior drop or initial free state
+#assert MutexSystem always
+  [](acquired -> (prevLocked == false));

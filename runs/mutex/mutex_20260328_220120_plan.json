@@ -1,0 +1,109 @@
+{
+  "system_type": "rust",
+  "system_name": "Mutex",
+  "constants": [
+    {
+      "name": "MAX_QUEUE_SIZE",
+      "value": "10",
+      "comment": "Maximum number of processes that can wait on the mutex"
+    }
+  ],
+  "variables": [
+    {
+      "name": "lock",
+      "type": "bool",
+      "init": "false",
+      "comment": "Current state of the lock (true = locked, false = unlocked)"
+    },
+    {
+      "name": "queue",
+      "type": "enum",
+      "init": "empty",
+      "comment": "Queue of processes waiting to acquire the mutex"
+    },
+    {
+      "name": "val",
+      "type": "T",
+      "init": "initial_value",
+      "comment": "The data being protected by the mutex"
+    }
+  ],
+  "processes": [
+    {
+      "name": "Mutex",
+      "role": "Resource",
+      "states_encoded_as": "lock",
+      "transitions": [
+        {
+          "label": "acquire / lock",
+          "guard": "[!lock]",
+          "actions": [
+            "lock := true"
+          ],
+          "next_state": "locked"
+        },
+        {
+          "label": "release / unlock",
+          "guard": "[lock]",
+          "actions": [
+            "lock := false",
+            "wake_one()"
+          ],
+          "next_state": "unlocked"
+        }
+      ]
+    },
+    {
+      "name": "LockAttempt",
+      "role": "Actor",
+      "states_encoded_as": "none",
+      "transitions": [
+        {
+          "label": "attempt_lock / try_lock",
+          "guard": "[!lock]",
+          "actions": [
+            "lock := true"
+          ],
+          "next_state": "locked"
+        },
+        {
+          "label": "enqueue",
+          "guard": "[lock]",
+          "actions": [
+            "enqueue(self)"
+          ],
+          "next_state": "waiting"
+        },
+        {
+          "label": "wake_up",
+          "guard": "[self is next in queue]",
+          "actions": [
+            "dequeue(next_process)",
+            "next_process.wake()"
+          ],
+          "next_state": "none"
+        }
+      ]
+    }
+  ],
+  "composition": "Mutex() || LockAttempt()",
+  "assertions": [
+    {
+      "id": "A1",
+      "kind": "deadlockfree",
+      "description": "The system is deadlock-free",
+      "pat_snippet": "#assert System deadlockfree;"
+    },
+    {
+      "id": "A2",
+      "kind": "invariant",
+      "description": "The lock can only be in a locked or unlocked state",
+      "pat_snippet": "#assert (lock = unlocked) || (lock = locked)"
+    }
+  ],
+  "translation_notes": [
+    "The WaitQueue implementation is assumed to be provided by the system, with wake_one() and enqueue/dequeue operations.",
+    "The actual data (val) is not modeled in the CSP# as it does not affect the concurrency logic.",
+    "The lock acquire and release is modeled as a simple two-state machine with explicit guards."
+  ]
+}

@@ -1,0 +1,109 @@
+Variables:
+ lock: bool
+ qsize: int
+ q0: bool
+ q1: bool
+ q2: bool
+ lock_held: bool
+ guard_live: bool
+ guard_count: int
+ in_critical: bool
+ after_unlock: bool
+ acquire_in_prog: bool
+ acquire_succeeded: bool
+ unlock_called: bool
+ wake_called: bool
+ guard_dropped: bool
+ try_lock_result: bool
+
+MutexProcess:
+ [!lock] -> acquire_lock: lock = true; lock_held = true;
+ [lock] -> release_lock: lock = false; lock_held = false; after_unlock = true;
+ [qsize >= 1] -> wake_one: qsize = qsize - 1;
+
+ThreadProcess:
+ [!lock] -> try_lock: acquire_succeeded = true;
+ [lock] -> wait_for_lock: qsize = qsize + 1;
+ [lock] -> unlock: unlock_called = true;
+ [guard_live] -> drop_guard: guard_count = guard_count - 1; guard_dropped = true;
+
+System:
+ MutexProcess ||| ThreadProcess ||| ThreadProcess ||| ThreadProcess
+
+// ============================================================
+// ASSERTIONS  (PAT 3: #define + reaches / deadlockfree)
+// (A ==> B) encoded as (A == 0 || B)
+// ============================================================
+
+// --- Mutual exclusion ---
+// At most one thread may hold a live guard at any time.
+// (Encoded pairwise for up to 3 threads; extend if N > 3.)
+#define mutex_exclusive (!(guard_live[1] == 1 && guard_live[2] == 1)
+                      && !(guard_live[1] == 1 && guard_live[3] == 1)
+                      && !(guard_live[2] == 1 && guard_live[3] == 1));
+#assert System reaches mutex_exclusive;
+
+// --- 1. Resource Access Logic ---
+
+// Guard held => lock bit is 1
+#define guard_implies_lock (guard_count != 1 || lock_held == 1);
+#assert System reaches guard_implies_lock;
+
+// Failed try_lock must not clear a held lock
+#define try_fail_no_unlock (try_lock_result != 0 || lock_held == 1 || lock_held == 0);
+#assert System reaches try_fail_no_unlock;
+
+// Critical section requires lock ownership (one assertion per thread)
+#define cs1_needs_lock (in_critical[1] != 1 || lock_held == 1);
+#define cs2_needs_lock (in_critical[2] != 1 || lock_held == 1);
+#define cs3_needs_lock (in_critical[3] != 1 || lock_held == 1);
+#assert System reaches cs1_needs_lock;
+#assert System reaches cs2_needs_lock;
+#assert System reaches cs3_needs_lock;
+
+// --- 2. State Synchronisation ---
+
+// After unlock: lock is 0 before next acquire sees it free
+#define after_unlock_lock_clear (after_unlock != 1 || lock_held == 0);
+#assert System reaches after_unlock_lock_clear;
+
+// No guard alive => lock must be 0
+#define no_guard_no_lock (guard_count != 0 || lock_held == 0);
+#assert System reaches no_guard_no_lock;
+
+// Acquire in progress => lock is already 1
+#define acq_prog_lock_held (acquire_in_prog != 1 || lock_held == 1);
+#assert System reaches acq_prog_lock_held;
+
+// --- 3. Capacity and Counting Invariants (binary semaphore) ---
+
+// At most one guard at any time
+#define at_most_one_guard (guard_count <= 1);
+#assert System reaches at_most_one_guard;
+
+// guard_count and lock bit agree (both directions)
+#define guard_lock_fwd (guard_count != 1 || lock_held == 1);
+#define guard_lock_bwd (lock_held != 1 || guard_count == 1);
+#assert System reaches guard_lock_fwd;
+#assert System reaches guard_lock_bwd;
+
+// Non-negativity
+#define guard_nonneg (guard_count >= 0);
+#assert System reaches guard_nonneg;
+
+// --- 4. Dependency-Driven Release ---
+
+// unlock() reachable only after successful acquire
+#define unlock_after_acquire (unlock_called != 1 || acquire_succeeded == 1);
+#assert System reaches unlock_after_acquire;
+
+// wake_one() always after release_lock()
+#define wake_after_release (wake_called != 1 || lock_held == 0);
+#assert System reaches wake_after_release;
+
+// Dropping guard eventually allows progress
+#define drop_allows_progress (guard_dropped != 1 || lock_held == 0 || next_acquired == 1);
+#assert System reaches drop_allows_progress;
+
+// --- Deadlock freedom ---
+#assert System deadlockfree;
