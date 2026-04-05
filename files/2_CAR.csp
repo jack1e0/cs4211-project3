@@ -1,0 +1,46 @@
+#define d 5;
+
+enum {red, green};
+enum {off, on};
+
+var a = 0;
+var b = 0;
+var c = 0;
+var A = 0;
+var B = 0;
+var C = 0;
+var ml_tl = red;
+var il_tl = red;
+var ML_OUT_SR = off;
+var ML_IN_SR = off;
+var IL_OUT_SR = off;
+var IL_IN_SR = off;
+var ml_out_10 = 0;
+var ml_in_10 = 0;
+var il_out_10 = 0;
+var il_in_10 = 0;
+var ml_pass = 1;
+var il_pass = 1;
+
+Controller() =
+    [ML_OUT_SR==off && ml_out_10==0] ML_OUT_ARR { ML_OUT_SR = on; } -> Controller()
+  [] [ML_IN_SR==off && ml_in_10==0 && C>0] ML_IN_ARR { ML_IN_SR = on; } -> Controller()
+  [] [IL_IN_SR==off && il_in_10==0 && A>0] IL_IN_ARR { IL_IN_SR = on; } -> Controller()
+  [] [IL_OUT_SR==off && il_out_10==0 && B>0] IL_OUT_ARR { IL_OUT_SR = on; } -> Controller()
+  [] [ML_OUT_SR==on && ml_tl==green] ML_OUT_DEP { ML_OUT_SR = off; ml_out_10 = 1; A = A+1; } -> Controller()
+  [] [ML_IN_SR==on] ML_IN_DEP { ML_IN_SR = off; ml_in_10 = 1; C = C-1; } -> Controller()
+  [] [IL_IN_SR==on] IL_IN_DEP { IL_IN_SR = off; il_in_10 = 1; A = A-1; B = B+1; } -> Controller()
+  [] [IL_OUT_SR==on && il_tl==green] IL_OUT_DEP { IL_OUT_SR = off; il_out_10 = 1; B = B-1; C = C+1; } -> Controller()
+  [] [ml_out_10==1 && a+b+1 < d] ML_out1 { a = a+1; ml_pass = 1; ml_out_10 = 0; } -> Controller()
+  [] [ml_out_10==1 && a+b+1 == d] ML_out2 { a = a+1; ml_tl = red; ml_pass = 1; ml_out_10 = 0; } -> Controller()
+  [] [il_out_10==1 && b > 1] IL_out1 { b = b-1; c = c+1; il_pass = 1; il_out_10 = 0; } -> Controller()
+  [] [il_out_10==1 && b == 1] IL_out2 { b = b-1; il_tl = red; c = c+1; il_pass = 1; il_out_10 = 0; } -> Controller()
+  [] [ml_in_10==1 && c > 0] ML_in { c = c-1; ml_in_10 = 0; } -> Controller()
+  [] [il_in_10==1 && a > 0] IL_in { a = a-1; b = b+1; il_in_10 = 0; } -> Controller()
+  [] [ml_tl==red && a+b < d && c==0 && il_pass==1 && il_out_10==0] ML_tl_green { ml_tl = green; il_tl = red; ml_pass = 0; } -> Controller()
+  [] [il_tl==red && b > 0 && a==0 && ml_pass==1 && ml_out_10==0] IL_tl_green { il_tl = green; ml_tl = red; il_pass = 0; } -> Controller()
+  [] [true] tau -> Controller();
+
+System() = Controller();
+
+#assert System() deadlockfree;

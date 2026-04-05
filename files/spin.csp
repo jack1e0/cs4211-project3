@@ -1,0 +1,54 @@
+enum { preemptDisabled, localIrqDisabled };
+var locked = 0;
+var guardCount = 0;
+var mode = preemptDisabled;
+
+Init() = initialise{
+    locked = 0;
+    guardCount = 0;
+    mode = preemptDisabled;
+} -> Skip;
+
+Disable() = [mode == preemptDisabled] disable_irq{
+    mode = localIrqDisabled;
+} -> Disable()
+[] [true] tau -> Disable();
+
+lockProc() = [locked == 1] tau -> lockProc()
+[] [locked == 0 && guardCount == 0] lock{
+    locked = 1;
+    guardCount = guardCount + 1;
+} -> Skip;
+
+Lock() = lockProc(); Lock();
+
+arcLockProc() = [locked == 1] tau -> arcLockProc()
+[] [locked == 0 && guardCount == 0] lock_arc{
+    locked = 1;
+    guardCount = guardCount + 1;
+} -> Skip;
+
+LockArc() = arcLockProc(); LockArc();
+
+tryLockProc() = [locked == 0 && guardCount == 0] try_lock_success{
+    locked = 1;
+    guardCount = guardCount + 1;
+} -> Skip
+[] [true] try_lock_fail -> Skip;
+
+TryLock() = tryLockProc(); TryLock();
+
+getMutProc() = [locked == 1 || guardCount == 1] tau -> getMutProc()
+[] [locked == 0 && guardCount == 0] get_mut -> Skip;
+
+GetMut() = getMutProc(); GetMut();
+
+Release() = [guardCount == 1 && locked == 1] release{
+    locked = 0;
+    guardCount = 0;
+} -> Release()
+[] [true] tau -> Release();
+
+System() = Init(); (Disable() ||| Lock() ||| LockArc() ||| TryLock() ||| GetMut() ||| Release());
+
+#assert System() deadlockfree;
