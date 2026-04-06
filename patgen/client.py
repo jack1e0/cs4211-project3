@@ -71,50 +71,138 @@ Output only the documentation. No explanations."""
 CSP_OUTPUT = """You are a formal methods expert. Given natural-language requirements, generate a \
 CSP# (CSP Sharp) model compatible with PAT 3.
 
+PAT models concurrent systems using process algebra. Processes interact via shared state and \
+events. Model checking targets deadlock-freeness, reachability, and LTL properties.
+
 STRICT SYNTAX RULES (MUST FOLLOW EXACTLY):
+-- General --
 - Use only CSP# syntax (NOT Event-B, NOT pseudocode)
 - Use C-style assignment: = (NEVER :=)
 - Use C-style operators: ==, !=, &&, !
-- Every state update MUST be inside: event { ... }
-- Every transition MUST be: event -> Process
-- Every process MUST be recursive (no -> Skip except Init)
-- Every guarded process MUST have TWO branches:
-    if (cond) { ... } -> P
-    [] if (!(cond)) { tau -> P }
-- NEVER use undefined functions (no f(x), parity(x), etc.)
-- Replace parity(x) with (x % 2)
-- Replace sets with integers
-- Do NOT use arrays unless explicitly required
 - Do NOT use mathematical symbols (∈, ∅, ≠, etc.)
+- NEVER use undefined functions (no f(x), parity(x), etc.)
+ 
+-- Semicolons --
+- Semicolons are REQUIRED after every top-level statement: #define, var, enum, and #assert lines
+- Semicolons are NOT used inside process expressions (after ->, [], |||)
+ 
+-- Constants --
+- Declare with #define
+  Example: #define n 10;
+ 
+-- Variables --
+- Declare with var, always initialized
+  Example: var r = 1;
+- For 1-D arrays use square brackets for values: var owner[N] = [far, far];
+- For 2-D arrays values MUST be a single flat list (no nested lists):
+  Example: var board[2][3] = [0,0,0,1,1,1];
+- Do NOT use arrays unless explicitly required
+ 
+-- Enumerations --
+- Use curly brackets {} directly after enum keyword, no name:
+  Example: enum {unlock, lock, open};
+- NEVER use reserved words as enum values: false, true, if, else, while, var, tau, Skip, Stop
+  BAD:  enum {false, true};   <- parse error: false/true are reserved
+  GOOD: use integers instead: var b = 0; and check with b == 0 or b == 1
 
+-- Reserved names (NEVER use these as event names) --
+- Built-in process keywords: Skip, Stop, tau, interrupt
+  These have fixed meaning in PAT and cannot be redefined or used as event names.
+- Any name already declared in the model CANNOT also be used as an event name. This includes:
+    - variable names    (e.g. var r = 1;  →  "r" cannot be an event)
+    - constant names    (e.g. #define n 10;  →  "n" cannot be an event)
+    - process names     (e.g. Init()  →  "init" cannot be an event — THIS IS A COMMON BUG)
+    - process parameter names
+    - proposition names (names used in #define for assertions)
+- Channel names are the ONE exception: they may also appear as event names.
+- To avoid clashes, always name events with a verb that differs from any declared identifier:
+    BAD:  process Init(), event init{...}   ← "init" clashes with process name
+    GOOD: process Init(), event initialise{...}
+ 
+-- Processes --
+- Every state update MUST be inside an event block: eventName { var = expr; } -> Process
+- Every transition MUST use ->
+- Every process MUST be recursive; only Init() may end with -> Skip
+
+-- Guarded Processes --
+- Every guarded process MUST use square-bracket style ONLY:
+    [cond] eventOrTau -> P()
+    [] [true] tau -> P()
+- PAT does NOT support `[else]` as a guard - use `[true]` or explicit condition instead
+- ALL guards must be at the TOP LEVEL (NO nesting of guards)
+  BAD:
+    [p == q]
+        [s != n + 1] send { ... } -> Send()
+- Guards MAY use &&, ! to form compound conditions
+  GOOD:
+    [p == q && s != n + 1] send { ... } -> Send()
+- EVERY branch MUST have a guard in []
+- ALWAYS include a fallback branch
+- DO NOT use `if (...)` anywhere
+- Guard conditions MUST use == not =
+  Correct:   [owner[i] == far]
+  Incorrect: [owner[i] = far]
+
+-- Sequential composition vs event transition --
+- Use ; to sequence one PROCESS after another (sequential composition):
+    System() = Init(); (Final() ||| Receive() ||| Send());
+- Use -> to transition from an EVENT to a process:
+    send { d = s; } -> Send()
+- NEVER use -> to chain two processes — this causes an invalid symbol parse error in PAT:
+    BAD:  System() = Init() -> (Final() ||| Receive());   <- parse error
+    GOOD: System() = Init(); (Final() ||| Receive());
+- Event blocks MUST contain at least one assignment
+- For events with no assignments, just write eventName -> Process (without {})
+    CORRECT: try_lock_fail -> Skip
+    WRONG:   try_lock_fail{ } -> Skip
+ 
+-- Process assembly --
+- Do NOT use the "process" keyword before process names
+- Interleaving (concurrent, no barrier sync): use |||
+    System() = Init(); (P1() ||| P2() ||| P3());
+- Parallel composition (barrier sync): use ||
+    College() = || x:{0..N-1} @ (Phil(x) || Fork(x));
+- Nondeterministic choice: use []
+    E() = B() [] C();
+- Choose interleaving vs parallel based on whether events must synchronize
+ 
 STRUCTURE:
-1. #define constants
-2. var declarations (all initialized)
-3. Init() process
-4. One process per Event
-5. System() = Init(); (P1() ||| P2() ||| ...)
-6. #assert statements
-
+1. #define constants 
+2. enum declarations if needed 
+3. var declarations, all initialized 
+4. Init() process  (ends with -> Skip;)
+5. One process per event/operation, each recursive
+6. System() assembling all processes
+7. #define goal states for assertions  
+8. #assert statements  
+ 
+ASSERTIONS:
+- Deadlock-freeness:  #assert System() deadlockfree;
+- Reachability (state properties): 
+    * Step 1: Define the state using #define with C-style operators (==, !=, &&, ||, !)
+        Example: #define goal (b == 1);
+        Example: #define state_p (p == parity_s);
+    * Step 2: Assert reachability: #assert System() reaches state_name;
+        Example: #assert System() reaches goal;
+- LTL (temporal properties):
+    * Step 1: Define atomic propositions using #define
+        Example: #define lightOn (on == 1);
+        Example: #define p_correct (p == party_s);
+    * Step 2: Assert LTL property using |= [] (always), <> (eventually), -> (implies), U (until)
+        Example: #assert System() |= []<>lightOn;
+        Example: #assert System() |= [] p_correct;
+- IMPORTANT: NEVER use = or == directly inside #assert System() |= [] (...);
+  Always define the proposition first with #define, then use the proposition name
+  BAD:  #assert System() |= [] (p == party_s);   <- parse error
+  GOOD: #define state (p == party_s); #assert System() |= [] state;
+ 
 OUTPUT:
-- Only valid PAT CSP# code
-- No explanations
-- No markdown
-
-Output only valid PAT CSP# source code.
-
-Ensure:
+- Only valid PAT CSP# code — no explanations, no markdown fences
 - No unreachable processes
 - No missing branches in guarded choices
 - No deadlocks unless explicitly required
 - Consistent naming with the requirements
-
-Example features to include when relevant:
-- Lock/Unlock operations
-- Queue modeling (bounded if required)
-- Thread processes
-- Always include safety assertions (mutual exclusion, invariants)
-- `#assert System() deadlockfree;`
-
+ 
 Output only the model.
 """
 
@@ -177,6 +265,13 @@ COMMON ERRORS TO CHECK
 8. Sequential composition where parallel (`|||`) is required
 9. Guards using `=` instead of `==`
 10. Illegal symbols (∈, ∅, ≠)
+11. Missing semicolon on ANY #define line (including proposition #defines at the bottom)
+12. Event name clashing with a process name — PAT treats them as the same identifier.
+    If a process is named Init(), the event inside it CANNOT be named init.
+    Same applies to Final/final, Receive/receive, Send/send, etc.
+    BAD:  Init() = init { ... } -> Skip;
+    GOOD: Init() = initialise { ... } -> Skip;
+
 
 --------------------------------
 GOAL
@@ -227,14 +322,19 @@ def complete_chat(
     client = OpenAI(api_key=cfg.api_key)
     if cfg.debug:
         print("[patgen debug] system (truncated):", system[:500], "...", sep="")
-    resp = client.chat.completions.create(
-        model=cfg.model,
-        temperature=temperature,
-        messages=[
+    
+    REASONING_PREFIXES = ("o1", "o3", "o4")
+    is_reasoning = any(cfg.model.startswith(p) for p in REASONING_PREFIXES)
+    kwargs: dict = {
+        "model": cfg.model,
+        "messages": [
             {"role": "system", "content": system},
             {"role": "user", "content": user},
         ],
-    )
+    }
+    if not is_reasoning:
+        kwargs["temperature"] = temperature
+    resp = client.chat.completions.create(**kwargs)
     choice = resp.choices[0]
     if choice.message.content is None:
         raise RuntimeError("OpenAI returned empty content.")
