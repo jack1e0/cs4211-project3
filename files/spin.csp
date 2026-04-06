@@ -1,54 +1,34 @@
-enum { preemptDisabled, localIrqDisabled };
-var locked = 0;
-var guardCount = 0;
-var mode = preemptDisabled;
+var lock = 0;
+var t1_cs = 0;
+var t2_cs = 0;
 
-Init() = initialise{
-    locked = 0;
-    guardCount = 0;
-    mode = preemptDisabled;
-} -> Skip;
+Init() = ini { lock = 0; t1_cs = 0; t2_cs = 0 } -> Skip;
 
-Disable() = [mode == preemptDisabled] disable_irq{
-    mode = localIrqDisabled;
-} -> Disable()
-[] [true] tau -> Disable();
+Thread1_Lock() = [lock == 0] lock1 { lock = 1 } -> enter_cs1 { t1_cs = 1 } -> exit_cs1 { t1_cs = 0; lock = 0 } -> Thread1()
+               [] [lock == 1] tau -> Thread1_Lock();
 
-lockProc() = [locked == 1] tau -> lockProc()
-[] [locked == 0 && guardCount == 0] lock{
-    locked = 1;
-    guardCount = guardCount + 1;
-} -> Skip;
+Thread1_Try() = [lock == 0] try_lock1 { lock = 1 } -> enter_cs1 { t1_cs = 1 } -> exit_cs1 { t1_cs = 0; lock = 0 } -> Thread1()
+               [] [lock == 1] try_lock1_fail -> Thread1();
 
-Lock() = lockProc(); Lock();
+Thread1() = [true] Thread1_Lock() [] [true] Thread1_Try() [] [lock == 0] get_mut1 -> Thread1() [] [true] disable_irq1 -> Thread1();
 
-arcLockProc() = [locked == 1] tau -> arcLockProc()
-[] [locked == 0 && guardCount == 0] lock_arc{
-    locked = 1;
-    guardCount = guardCount + 1;
-} -> Skip;
+Thread2_Lock() = [lock == 0] lock2 { lock = 1 } -> enter_cs2 { t2_cs = 1 } -> exit_cs2 { t2_cs = 0; lock = 0 } -> Thread2()
+               [] [lock == 1] tau -> Thread2_Lock();
 
-LockArc() = arcLockProc(); LockArc();
+Thread2_Try() = [lock == 0] try_lock2 { lock = 1 } -> enter_cs2 { t2_cs = 1 } -> exit_cs2 { t2_cs = 0; lock = 0 } -> Thread2()
+               [] [lock == 1] try_lock2_fail -> Thread2();
 
-tryLockProc() = [locked == 0 && guardCount == 0] try_lock_success{
-    locked = 1;
-    guardCount = guardCount + 1;
-} -> Skip
-[] [true] try_lock_fail -> Skip;
+Thread2() = [true] Thread2_Lock() [] [true] Thread2_Try() [] [lock == 0] get_mut2 -> Thread2() [] [true] disable_irq2 -> Thread2();
 
-TryLock() = tryLockProc(); TryLock();
+System() = Init(); (Thread1() ||| Thread2());
 
-getMutProc() = [locked == 1 || guardCount == 1] tau -> getMutProc()
-[] [locked == 0 && guardCount == 0] get_mut -> Skip;
-
-GetMut() = getMutProc(); GetMut();
-
-Release() = [guardCount == 1 && locked == 1] release{
-    locked = 0;
-    guardCount = 0;
-} -> Release()
-[] [true] tau -> Release();
-
-System() = Init(); (Disable() ||| Lock() ||| LockArc() ||| TryLock() ||| GetMut() ||| Release());
+#define mutex (!(t1_cs == 1 && t2_cs == 1));
+#define lockValid (lock == 0 || lock == 1);
+#define t1_eventually_cs (t1_cs == 1);
+#define t2_eventually_cs (t2_cs == 1);
 
 #assert System() deadlockfree;
+#assert System() |= []mutex;
+#assert System() |= []lockValid;
+#assert System() |= []<>t1_eventually_cs;
+#assert System() |= []<>t2_eventually_cs;

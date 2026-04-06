@@ -127,7 +127,9 @@ STRICT SYNTAX RULES (MUST FOLLOW EXACTLY):
 -- Guarded Processes --
 - Every guarded process MUST use square-bracket style ONLY:
     [cond] eventOrTau -> P()
-    [] [true] tau -> P()
+    [true] tau -> P()
+- Guards MUST NOT be preceded by [] 
+  INVALID: [] [cond] event -> P
 - PAT does NOT support `[else]` as a guard - use `[true]` or explicit condition instead
 - ALL guards must be at the TOP LEVEL (NO nesting of guards)
   BAD:
@@ -292,9 +294,17 @@ Output ONLY the updated model, without comments or explanations.
 def stage1_system_message(input_kind: str) -> str:
     return f"{NATURAL_LANGUAGE_REQUIREMENTS}\n\nThe input is labeled as: {input_kind}."
 
-
-def stage2_system_message(config: Config) -> str:
-    return CSP_OUTPUT
+def stage2_system_message(config: Config, assertions: str | None = None) -> str:
+    if not assertions:
+        return CSP_OUTPUT
+    assertion_block = (
+        "\n\n########### MANUAL ASSERTIONS ###########\n"
+        "The user has provided the following PAT assertions that MUST ALL PASS.\n"
+        "Include these assertions at the end of the model, after all #define propositions.\n\n"
+        + assertions.strip()
+        + "\n########### END OF MANUAL ASSERTIONS ###########"
+    )
+    return CSP_OUTPUT + assertion_block
 
 def stage3_system_message(csp_input: str,config: Config) -> str:
     parts = [VERIFY_CSP]

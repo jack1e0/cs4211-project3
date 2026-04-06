@@ -43,6 +43,12 @@ def main(argv: list[str] | None = None) -> int:
         default=None,
         help="Also write Stage 1 natural-language brief to this path",
     )
+    parser.add_argument(
+        "--assertions",
+        type=Path,
+        default=None,
+        help="Path to a text file containing manual PAT assertions to include in the model",
+    )
     args = parser.parse_args(argv)
 
     path: Path = args.input
@@ -52,7 +58,8 @@ def main(argv: list[str] | None = None) -> int:
 
     try:
         cfg = load_config()
-        result = run_pipeline(path, cfg, kind=args.kind)
+        assertions = args.assertions.read_text(encoding="utf-8") if args.assertions else None
+        result = run_pipeline(path, cfg, kind=args.kind, assertions=assertions)
     except Exception as ex:  # noqa: BLE001 — CLI surfaces any failure
         print(f"patgen: {ex}", file=sys.stderr)
         return 1
