@@ -12,6 +12,7 @@ cp .env.example .env   # set OPENAI_API_KEY
 
 ```bash
 python -m patgen path/to/file.txt --dump-brief brief.md
+python -m patgen ./files/4_FILE_1.txt --assertions file_assertions.txt
 ```
 
 Writes PAT source to `path/to/file.csp` by default. Use `-o` / `--output` to pick another path.

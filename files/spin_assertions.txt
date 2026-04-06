@@ -1,0 +1,10 @@
+#define mutex (!(t1_cs == 1 && t2_cs == 1));
+#define lockValid (lock == 0 || lock == 1);
+#define t1_eventually_cs (t1_cs == 1);
+#define t2_eventually_cs (t2_cs == 1);
+
+#assert System() deadlockfree;
+#assert System() |= []mutex;
+#assert System() |= []lockValid;
+#assert System() |= []<>t1_eventually_cs;
+#assert System() |= []<>t2_eventually_cs;

@@ -1,0 +1,16 @@
+#define safe1 (!(inAccept == 1 && (inPass == 1 || inOffGrn == 1)));
+#define safe2 (!(inPass == 1 && inOffGrn == 1));
+#define safe3 (!(inRefuse == 1 && inOffRed == 1));
+#define greenOk (inGRN == 0 || inAccept == 1);
+#define redOk (inRED == 0 || inRefuse == 1);
+#define processed_done (processed == 1);
+#define reached (processed == 1);
+
+#assert System() deadlockfree;
+#assert System() |= []safe1;
+#assert System() |= []safe2;
+#assert System() |= []safe3;
+#assert System() |= []greenOk;
+#assert System() |= []redOk;
+#assert System() |= []<>processed_done;
+#assert System() reaches reached;
