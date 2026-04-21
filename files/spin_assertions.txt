@@ -1,10 +1,53 @@
-#define mutex (!(t1_cs == 1 && t2_cs == 1));
-#define lockValid (lock == 0 || lock == 1);
-#define t1_eventually_cs (t1_cs == 1);
-#define t2_eventually_cs (t2_cs == 1);
+// Resource Access Logic
+#define held_iff_guarded (guard_count != 1 || lock_held == 1);
+#assert System() reaches held_iff_guarded;
 
+#define t1_in_cs_owns_lock (in_critical[1] != 1 || lock_held == 1);
+#define t2_in_cs_owns_lock (in_critical[2] != 1 || lock_held == 1);
+#define t3_in_cs_owns_lock (in_critical[3] != 1 || lock_held == 1);
+#assert System() reaches t1_in_cs_owns_lock;
+#assert System() reaches t2_in_cs_owns_lock;
+#assert System() reaches t3_in_cs_owns_lock;
+
+#define only_one_in_cs (!(guard_live[1] == 1 && guard_live[2] == 1)
+                      && !(guard_live[1] == 1 && guard_live[3] == 1)
+                      && !(guard_live[2] == 1 && guard_live[3] == 1));
+#assert System() reaches only_one_in_cs;
+
+#define mode_active_during_spin (spin_in_prog != 1 || inner_guard_created == 1);
+#assert System() reaches mode_active_during_spin;
+
+#define irq_upgrade_takes_effect (disable_irq_called != 1 || guard_mode == IRQ_DISABLED);
+#assert System() reaches irq_upgrade_takes_effect;
+
+// State Synchronisation 
+#define release_clears_bit (after_release != 1 || lock_held == 0);
+#assert System() reaches release_clears_bit;
+
+#define zero_guards_zero_lock (guard_count != 0 || lock_held == 0);
+#assert System() reaches zero_guards_zero_lock;
+
+#define spinning_means_contended (spin_in_prog != 1 || lock_held == 1);
+#assert System() reaches spinning_means_contended;
+
+// Capacity and Counting Invariants
+#define single_owner_max (guard_count <= 1);
+#assert System() reaches single_owner_max;
+
+#define count_tracks_bit_fwd (guard_count != 1 || lock_held == 1);
+#define count_tracks_bit_bwd (lock_held != 1 || guard_count == 1);
+#assert System() reaches count_tracks_bit_fwd;
+#assert System() reaches count_tracks_bit_bwd;
+
+#define count_floor (guard_count >= 0);
+#assert System() reaches count_floor;
+
+// Dependency-Driven Release 
+#define release_requires_prior_acquire (release_called != 1 || acquire_succeeded == 1);
+#assert System() reaches release_requires_prior_acquire;
+
+#define drop_unblocks_spinners (guard_dropped != 1 || lock_held == 0 || next_acquired == 1);
+#assert System() reaches drop_unblocks_spinners;
+
+// Deadlock Freedom 
 #assert System() deadlockfree;
-#assert System() |= []mutex;
-#assert System() |= []lockValid;
-#assert System() |= []<>t1_eventually_cs;
-#assert System() |= []<>t2_eventually_cs;

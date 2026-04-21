@@ -1,52 +1,86 @@
-var BLR = 0;
-var hasCard = 0;
-var sit = 0;
-var dap = 0;
+#define outside 0;
+#define dest 1;
+var blrReleased = 0;
+var sit = outside;
+var dapActive = 0;
+var inBLR = 0;
+var inMCard = 0;
 var inAccept = 0;
-var inRefuse = 0;
 var inGRN = 0;
-var inRED = 0;
 var inPass = 0;
 var inOffGrn = 0;
+var inRefuse = 0;
+var inRED = 0;
 var inOffRed = 0;
-var mAckn = 0;
+var afterAckn = 0;
+var acceptOccurred = 0;
+var refuseOccurred = 0;
 var processed = 0;
-var org = 0;
-var dst = 1;
 
-InitProc() = 
-  initialise { processed = 0; } -> Skip;
+Init() = Skip;
+Proc() =
+    [inBLR == 0] CARD {
+        inBLR = 1; inMCard = 1; afterAckn = 0; blrReleased = 0;
+        inAccept = 0; inRefuse = 0; inGRN = 0; inRED = 0;
+        inPass = 0; inOffGrn = 0; inOffRed = 0;
+        acceptOccurred = 0; refuseOccurred = 0;
+    } -> Proc()
+  [] [inMCard == 1 && sit == outside && dapActive == 0] accept {
+        dapActive = 1; inMCard = 0; inAccept = 1; acceptOccurred = 1;
+     } -> Proc()
+  [] [inMCard == 1 && !(sit == outside && dapActive == 0)] refuse {
+        inMCard = 0; inRefuse = 1; refuseOccurred = 1;
+     } -> Proc()
+  [] [inAccept == 1] ACCEPT { inGRN = 1; inAccept = 0; } -> Proc()
+  [] [inRefuse == 1] REFUSE { inRED = 1; inRefuse = 0; } -> Proc()
+  [] [inGRN == 1 && inOffGrn == 0] PASS { inGRN = 0; inPass = 1; } -> Proc()
+  [] [inGRN == 1 && inPass == 0] OFF_GRN { inGRN = 0; inOffGrn = 1; } -> Proc()
+  [] [inRED == 1] OFF_RED { inRED = 0; inOffRed = 1; inRefuse = 0; } -> Proc()
+  [] [inPass == 1] pass {
+        inPass = 0; dapActive = 0; sit = dest; processed = 1; afterAckn = 1;
+     } -> Proc()
+  [] [inOffGrn == 1] off_grn {
+        inOffGrn = 0; dapActive = 0; afterAckn = 1; processed = 1;
+     } -> Proc()
+  [] [inOffRed == 1] off_red {
+        inOffRed = 0; afterAckn = 1;
+     } -> Proc()
+  [] [afterAckn == 1] ACKN { inBLR = 0; afterAckn = 0; blrReleased = 1; } -> Proc();
 
-Controller() =
-  [BLR == 0] CARD { BLR = 1; hasCard = 1; } -> Controller []
-  [mAckn == 1] ACKN { BLR = 0; mAckn = 0; } -> Controller []
-  [hasCard == 1 && sit == org && dap == 0] accept { dap = 1; hasCard = 0; inAccept = 1; } -> Controller []
-  [hasCard == 1 && !(sit == org && dap == 0)] refuse { hasCard = 0; inRefuse = 1; } -> Controller []
-  [inAccept == 1] ACCEPT { inGRN = 1; } -> Controller []
-  [inRefuse == 1] REFUSE { inRED = 1; } -> Controller []
-  [inGRN == 1] PASS { inGRN = 0; inPass = 1; inAccept = 0; } -> Controller []
-  [inGRN == 1] OFF_GRN { inGRN = 0; inOffGrn = 1; inAccept = 0; } -> Controller []
-  [inRED == 1] OFF_RED { inRED = 0; inOffRed = 1; inRefuse = 0; } -> Controller []
-  [inPass == 1] pass { dap = 0; sit = dst; mAckn = 1; inPass = 0; processed = 1; } -> Controller []
-  [inOffGrn == 1] off_grn { dap = 0; mAckn = 1; inOffGrn = 0; processed = 1; } -> Controller []
-  [inOffRed == 1] off_red { mAckn = 1; inOffRed = 0; processed = 1; } -> Controller []
-  [true] tau -> Controller;
+System() = Init(); Proc();
 
-System() = InitProc(); Controller();
+#define greenOk (inGRN == 0 || acceptOccurred == 1);
+#define redOk (inRED == 0 || refuseOccurred == 1);
+#assert System() |= []greenOk;
+#assert System() |= []redOk;
 
 #define safe1 (!(inAccept == 1 && (inPass == 1 || inOffGrn == 1)));
 #define safe2 (!(inPass == 1 && inOffGrn == 1));
 #define safe3 (!(inRefuse == 1 && inOffRed == 1));
-#define greenOk (inGRN == 0 || inAccept == 1);
-#define redOk (inRED == 0 || inRefuse == 1);
-#define processed_done (processed == 1);
-#define reached (processed == 1);
-
-#assert System() deadlockfree;
 #assert System() |= []safe1;
 #assert System() |= []safe2;
 #assert System() |= []safe3;
-#assert System() |= []greenOk;
-#assert System() |= []redOk;
+
+#define dap_tracked (dapActive == 0 || (inAccept == 1 || inGRN == 1 || inPass == 1 || inOffGrn == 1));
+#assert System() |= []dap_tracked;
+
+#define red_partition (inRED == 0 || refuseOccurred == 1);
+#assert System() |= []red_partition;
+
+#define blr_cleared (blrReleased == 0|| inBLR == 0);
+#assert System() |= []blr_cleared;
+
+#define processed_done (processed == 1);
 #assert System() |= []<>processed_done;
+
+#define blr_release_after_ackn (blrReleased == 0 || inBLR == 0);
+#define offgrn_needs_accept (inOffGrn == 0 || acceptOccurred == 1);
+#define offred_needs_refuse (inOffRed == 0 || refuseOccurred == 1);
+#assert System() |= []blr_release_after_ackn;
+#assert System() |= []offgrn_needs_accept;
+#assert System() |= []offred_needs_refuse;
+
+#define reached (processed == 1);
 #assert System() reaches reached;
+
+#assert System() deadlockfree;
