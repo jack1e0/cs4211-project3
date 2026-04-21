@@ -122,7 +122,8 @@ STRICT SYNTAX RULES (MUST FOLLOW EXACTLY):
 -- Processes --
 - Every state update MUST be inside an event block: eventName { var = expr; } -> Process
 - Every transition MUST use ->
-- Every process MUST be recursive; only Init() may end with -> Skip
+- Every process MUST be recursive
+- Init() MUST end with -> Skip to terminate; never make Init() recursive
 
 -- Guarded Processes --
 - Every guarded process MUST use square-bracket style ONLY:
@@ -157,6 +158,11 @@ STRICT SYNTAX RULES (MUST FOLLOW EXACTLY):
 - For events with no assignments, just write eventName -> Process (without {})
     CORRECT: try_lock_fail -> Skip
     WRONG:   try_lock_fail{ } -> Skip
+
+-- Tau transitions --
+- NEVER write tau -> P() or [true] tau -> P() as a fallback for unguarded processes 
+- tau is only valid with a meaningful falsifiable guard: [cond] tau -> P() where cond can be false
+- If no valid guard exists, remove the tau branch entirely to avoid deadlocks
  
 -- Process assembly --
 - Do NOT use the "process" keyword before process names
@@ -273,6 +279,7 @@ COMMON ERRORS TO CHECK
     Same applies to Final/final, Receive/receive, Send/send, etc.
     BAD:  Init() = init { ... } -> Skip;
     GOOD: Init() = initialise { ... } -> Skip;
+13. Missing semicolons for each statement
 
 
 --------------------------------
