@@ -1,5 +1,3 @@
-"""Thin OpenAI chat wrapper."""
-
 from __future__ import annotations
 
 from openai import OpenAI
@@ -287,14 +285,14 @@ Your goal is to catch ALL issues that would cause:
 --------------------------------
 OUTPUT
 --------------------------------
-Output ONLY the updated model, without comments or explanations. 
+Output ONLY the updated valid PAT CSP# code — no explanations, no markdown fences. 
 """
 
 
-def stage1_system_message(input_kind: str) -> str:
+def stage1_prompt(input_kind: str) -> str:
     return f"{NATURAL_LANGUAGE_REQUIREMENTS}\n\nThe input is labeled as: {input_kind}."
 
-def stage2_system_message(config: Config, assertions: str | None = None) -> str:
+def stage2_prompt(assertions: str | None) -> str:
     if not assertions:
         return CSP_OUTPUT
     assertion_block = (
@@ -306,21 +304,19 @@ def stage2_system_message(config: Config, assertions: str | None = None) -> str:
     )
     return CSP_OUTPUT + assertion_block
 
-def stage3_system_message(csp_input: str,config: Config) -> str:
-    parts = [VERIFY_CSP]
-    parts.append(
-        "\n\n########### CSP# Input:):\n"
-    )
-    parts.append(csp_input)
-    parts.append(
-        "\n\n########### Additional reference CSP# examples (learn syntax and idioms; "
-        "output a model for the user's brief, do not copy these verbatim):\n"
-    )
-    parts.append(config.csp_examples_addon)
-    return "".join(parts)
+def stage3_prompt(csp_input: str, config: Config) -> str:
+    out = VERIFY_CSP + "\n\n########### CSP# Input:\n" + csp_input
+    addon = config.csp_examples_addon
+    if addon:
+        out += (
+            "\n\n########### Additional reference CSP# examples (learn syntax and idioms; "
+            "output a model for the user's brief, do not copy these verbatim):\n"
+            + addon
+        )
+    return out
 
 
-def complete_chat(
+def generate(
     cfg: Config,
     *,
     system: str,
@@ -330,9 +326,7 @@ def complete_chat(
     if not cfg.api_key:
         raise RuntimeError("OPENAI_API_KEY is not set. Copy .env.example to .env and set it.")
     client = OpenAI(api_key=cfg.api_key)
-    if cfg.debug:
-        print("[patgen debug] system (truncated):", system[:500], "...", sep="")
-    
+
     REASONING_PREFIXES = ("o1", "o3", "o4")
     is_reasoning = any(cfg.model.startswith(p) for p in REASONING_PREFIXES)
     kwargs: dict = {

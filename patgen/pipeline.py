@@ -1,27 +1,19 @@
-"""Orchestrate Stage 1 (NL brief) → Stage 2 (PAT-style text)."""
-
 from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
 
 from patgen.client import (
-    complete_chat,
-    stage1_system_message,
-    stage2_system_message,
-    stage3_system_message,  
-)   
+    generate,
+    stage1_prompt,
+    stage2_prompt,
+    stage3_prompt,
+)
 from patgen.config import Config
 
 
-def infer_kind(path: Path, explicit: str | None) -> str:
-    if explicit:
-        e = explicit.lower().strip()
-        if e not in ("eventb", "rust"):
-            raise ValueError("--kind must be eventb or rust")
-        return e
-    suf = path.suffix.lower()
-    if suf == ".rs":
+def infer_kind(path: Path) -> str:
+    if path.suffix.lower() == ".rs":
         return "rust"
     return "eventb"
 
@@ -32,31 +24,29 @@ class RunResult:
     pat_source: str
 
 
-def run_pipeline(path: Path, cfg: Config, *, kind: str | None = None, assertions: str | None = None) -> RunResult:
+def run_pipeline(path: Path, cfg: Config, *, assertions: str | None = None) -> RunResult:
     text = path.read_text(encoding="utf-8", errors="replace")
-    input_kind = infer_kind(path, kind)
+    input_kind = infer_kind(path)
     user1 = f"File path (context only): {path.name}\n\n---\n\n{text}"
 
-    brief = complete_chat(
+    brief = generate(
         cfg,
-        system=stage1_system_message(input_kind),
+        system=stage1_prompt(input_kind),
         user=user1,
         temperature=cfg.temperature_stage1,
     )
 
-    user2 = brief
-    pat_source = complete_chat(
+    pat_source = generate(
         cfg,
-        system=stage2_system_message(cfg, assertions=assertions),
-        user=user2,
+        system=stage2_prompt(assertions=assertions),
+        user=brief,
         temperature=cfg.temperature_stage2,
     )
 
-    user3 = pat_source
-    final_csp = complete_chat(
+    final_csp = generate(
         cfg,
-        system=stage3_system_message(pat_source, cfg),
-        user=user3,
+        system=stage3_prompt(pat_source, cfg),
+        user=pat_source,
         temperature=cfg.temperature_stage2,
     )
 

@@ -1,5 +1,3 @@
-"""Command-line entry for patgen."""
-
 from __future__ import annotations
 
 import argparse
@@ -10,25 +8,14 @@ from patgen.config import load_config
 from patgen.pipeline import run_pipeline
 
 
-def default_pat_output_path(input_path: Path) -> Path:
-    """Same directory as input, stem plus `.csp` (e.g. `model.txt` -> `model.csp`)."""
-    return input_path.with_suffix(".csp")
-
-
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
-        description="Generate PAT-style model text from Event-B text or Rust via OpenAI (two stages).",
+        description="Generate PAT-style model text from Event-B text or Rust via OpenAI.",
     )
     parser.add_argument(
         "input",
         type=Path,
         help="Path to Event-B-like .txt or .rs source file",
-    )
-    parser.add_argument(
-        "--kind",
-        choices=("eventb", "rust"),
-        default=None,
-        help="Override input kind (default: from extension, .rs → rust, else eventb)",
     )
     parser.add_argument(
         "-o",
@@ -59,15 +46,15 @@ def main(argv: list[str] | None = None) -> int:
     try:
         cfg = load_config()
         assertions = args.assertions.read_text(encoding="utf-8") if args.assertions else None
-        result = run_pipeline(path, cfg, kind=args.kind, assertions=assertions)
-    except Exception as ex:  # noqa: BLE001 — CLI surfaces any failure
+        result = run_pipeline(path, cfg, assertions=assertions)
+    except Exception as ex:
         print(f"patgen: {ex}", file=sys.stderr)
         return 1
 
     if args.dump_brief:
         args.dump_brief.write_text(result.brief + "\n", encoding="utf-8")
 
-    out_path = args.output if args.output is not None else default_pat_output_path(path)
+    out_path = args.output if args.output is not None else path.with_suffix(".csp")
     out_path.write_text(result.pat_source + "\n", encoding="utf-8")
 
     return 0
