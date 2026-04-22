@@ -3,13 +3,13 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
-from patgen.client import (
+from src.client import (
     generate,
     stage1_prompt,
     stage2_prompt,
     stage3_prompt,
 )
-from patgen.config import Config
+from src.config import Config
 
 
 def infer_kind(path: Path) -> str:

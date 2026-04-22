@@ -19,13 +19,13 @@ Then, set the OpenAI key in `.env`.
 **Run pipeline**
 
 ```bash
-python -m patgen path/to/input_eventb_file.txt --dump-brief path/to/brief.md --assertions path/to/manual_assertions.txt
+python -m src path/to/input_eventb_file.txt --assertions path/to/manual_assertions.txt
 ```
 
 Example:
 
 ```bash
-python -m patgen files/doors.txt --dump-brief brief.md --assertions files/doors_assertions.txt
+python -m src files/doors.txt --assertions files/doors_assertions.txt
 ```
 
 The final PAT model will be written to the same directory and filename as input file by default (e.g. `./files/doors.csp`). Use `-o` / `--output` to pick another path.

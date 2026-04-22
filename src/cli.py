@@ -4,8 +4,8 @@ import argparse
 import sys
 from pathlib import Path
 
-from patgen.config import load_config
-from patgen.pipeline import run_pipeline
+from src.config import load_config
+from src.pipeline import run_pipeline
 
 
 def main(argv: list[str] | None = None) -> int:

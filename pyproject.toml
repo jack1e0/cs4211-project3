@@ -19,11 +19,11 @@ dev = [
 ]
 
 [project.scripts]
-patgen = "patgen.cli:main"
+patgen = "src.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["patgen*"]
+include = ["src*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from openai import OpenAI
 
-from patgen.config import Config
+from src.config import Config
 
 NATURAL_LANGUAGE_REQUIREMENTS = """You are a formal methods assistant. Your task is to read a source file \
 (Event-B style text or Rust) and produce precise natural-language requirements for a model that will later be encoded in \
