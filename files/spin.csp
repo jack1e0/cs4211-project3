@@ -1,34 +1,94 @@
-var lock = 0;
-var t1_cs = 0;
-var t2_cs = 0;
+#define PREEMPT_DISABLED 0;
+#define IRQ_DISABLED 1;
 
-Init() = ini { lock = 0; t1_cs = 0; t2_cs = 0 } -> Skip;
+var lock_held = 0;
+var guard_count = 0;
+var in_critical_1 = 0;
+var in_critical_2 = 0;
+var in_critical_3 = 0;
+var guard_live_1 = 0;
+var guard_live_2 = 0;
+var guard_live_3 = 0;
+var spin_in_prog = 0;
+var inner_guard_created = 0;
+var disable_irq_called = 0;
+var after_release = 0;
+var guard_dropped = 0;
+var next_acquired = 0;
+var acquire_succeeded = 0;
+var release_called = 0;
+var guard_mode = PREEMPT_DISABLED;
 
-Thread1_Lock() = [lock == 0] lock1 { lock = 1 } -> enter_cs1 { t1_cs = 1 } -> exit_cs1 { t1_cs = 0; lock = 0 } -> Thread1()
-               [] [lock == 1] tau -> Thread1_Lock();
+Init() = initialize {
+    lock_held = 0;
+    guard_count = 0;
+    in_critical_1 = 0;
+    in_critical_2 = 0;
+    in_critical_3 = 0;
+    guard_live_1 = 0;
+    guard_live_2 = 0;
+    guard_live_3 = 0;
+    spin_in_prog = 0;
+    inner_guard_created = 0;
+    disable_irq_called = 0;
+    after_release = 0;
+    guard_dropped = 0;
+    next_acquired = 0;
+    acquire_succeeded = 0;
+    release_called = 0;
+    guard_mode = PREEMPT_DISABLED;
+} -> Skip;
 
-Thread1_Try() = [lock == 0] try_lock1 { lock = 1 } -> enter_cs1 { t1_cs = 1 } -> exit_cs1 { t1_cs = 0; lock = 0 } -> Thread1()
-               [] [lock == 1] try_lock1_fail -> Thread1();
+Worker1() = [true] tau -> Worker1();
+Worker2() = [true] tau -> Worker2();
+Worker3() = [true] tau -> Worker3();
 
-Thread1() = [true] Thread1_Lock() [] [true] Thread1_Try() [] [lock == 0] get_mut1 -> Thread1() [] [true] disable_irq1 -> Thread1();
+System() = Init(); SystemWork();
+SystemWork() = Worker1() ||| Worker2() ||| Worker3();
 
-Thread2_Lock() = [lock == 0] lock2 { lock = 1 } -> enter_cs2 { t2_cs = 1 } -> exit_cs2 { t2_cs = 0; lock = 0 } -> Thread2()
-               [] [lock == 1] tau -> Thread2_Lock();
+#define held_iff_guarded (guard_count != 1 || lock_held == 1);
+#assert System() reaches held_iff_guarded;
 
-Thread2_Try() = [lock == 0] try_lock2 { lock = 1 } -> enter_cs2 { t2_cs = 1 } -> exit_cs2 { t2_cs = 0; lock = 0 } -> Thread2()
-               [] [lock == 1] try_lock2_fail -> Thread2();
+#define t1_in_cs_owns_lock (in_critical_1 != 1 || lock_held == 1);
+#define t2_in_cs_owns_lock (in_critical_2 != 1 || lock_held == 1);
+#define t3_in_cs_owns_lock (in_critical_3 != 1 || lock_held == 1);
+#assert System() reaches t1_in_cs_owns_lock;
+#assert System() reaches t2_in_cs_owns_lock;
+#assert System() reaches t3_in_cs_owns_lock;
 
-Thread2() = [true] Thread2_Lock() [] [true] Thread2_Try() [] [lock == 0] get_mut2 -> Thread2() [] [true] disable_irq2 -> Thread2();
+#define only_one_in_cs (!(guard_live_1 == 1 && guard_live_2 == 1) && !(guard_live_1 == 1 && guard_live_3 == 1) && !(guard_live_2 == 1 && guard_live_3 == 1));
+#assert System() reaches only_one_in_cs;
 
-System() = Init(); (Thread1() ||| Thread2());
+#define mode_active_during_spin (spin_in_prog != 1 || inner_guard_created == 1);
+#assert System() reaches mode_active_during_spin;
 
-#define mutex (!(t1_cs == 1 && t2_cs == 1));
-#define lockValid (lock == 0 || lock == 1);
-#define t1_eventually_cs (t1_cs == 1);
-#define t2_eventually_cs (t2_cs == 1);
+#define irq_upgrade_takes_effect (disable_irq_called != 1 || guard_mode == IRQ_DISABLED);
+#assert System() reaches irq_upgrade_takes_effect;
+
+#define release_clears_bit (after_release != 1 || lock_held == 0);
+#assert System() reaches release_clears_bit;
+
+#define zero_guards_zero_lock (guard_count != 0 || lock_held == 0);
+#assert System() reaches zero_guards_zero_lock;
+
+#define spinning_means_contended (spin_in_prog != 1 || lock_held == 1);
+#assert System() reaches spinning_means_contended;
+
+#define single_owner_max (guard_count <= 1);
+#assert System() reaches single_owner_max;
+
+#define count_tracks_bit_fwd (guard_count != 1 || lock_held == 1);
+#define count_tracks_bit_bwd (lock_held != 1 || guard_count == 1);
+#assert System() reaches count_tracks_bit_fwd;
+#assert System() reaches count_tracks_bit_bwd;
+
+#define count_floor (guard_count >= 0);
+#assert System() reaches count_floor;
+
+#define release_requires_prior_acquire (release_called != 1 || acquire_succeeded == 1);
+#assert System() reaches release_requires_prior_acquire;
+
+#define drop_unblocks_spinners (guard_dropped != 1 || lock_held == 0 || next_acquired == 1);
+#assert System() reaches drop_unblocks_spinners;
 
 #assert System() deadlockfree;
-#assert System() |= []mutex;
-#assert System() |= []lockValid;
-#assert System() |= []<>t1_eventually_cs;
-#assert System() |= []<>t2_eventually_cs;
