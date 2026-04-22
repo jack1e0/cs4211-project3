@@ -3,7 +3,9 @@
 ### Pipeline Description
 
 **Stage 1:** Input Event-B text or Rust file --> Produce a natural-language requirements documentation
+
 **Stage 2:** Input documentation + manual assertions --> Produce a CSP# file
+
 **Stage 3:** Input CSP# file + more CSP# examples --> Produce a verified final CSP# file
 
 ### Local Setup
